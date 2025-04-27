@@ -1,0 +1,25 @@
+@use "helpers" as *;
+
+:root {
+  --color-light: #ffffff;
+  --color-dark: #190f2c;
+  --color-black: #000000;
+  --color-gray: #f7f5f5;
+  --color-dark-gray: #ddd9e3;
+  --color-purple: #714eae;
+  --color-purple-hover: #5d3e8d;
+  --color-purple-dark: #46287c;
+  --color-shadow: rgba(128, 128, 128, 0.71);
+  --color-breadcrumbs: #5a5a5a;
+
+  --font-family-base: 'Inter', sans-serif;
+
+  --container-width: #{rem(1250)};
+  --container-padding-x: #{rem(20)};
+
+  --transition-duration: 0.2s;
+
+  @include laptop {
+    --container-width: #{rem(1100)};
+  }
+}

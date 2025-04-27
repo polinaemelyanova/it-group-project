@@ -1,0 +1,18 @@
+@use "../helpers" as *;
+
+.soc1als {
+  &__list {
+    display: flex;
+    justify-content: flex-start;
+    column-gap: rem(5);
+    align-items: center;
+
+    @include mobile {
+      justify-content: center;
+    }
+  }
+
+  &__item {
+    display: flex;
+  }
+}

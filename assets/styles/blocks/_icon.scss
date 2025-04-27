@@ -1,0 +1,103 @@
+@use "../helpers" as *;
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  column-gap: #{rem(10)};
+
+  &::before {
+    --size: #{rem(14)};
+
+    @include square(var(--size));
+
+    content: '';
+    flex-shrink: 0;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+
+  &__clock {
+    &::before {
+      background-image: url("/icons/clock-head.svg");
+    }
+  }
+
+  &__contact {
+    &::before {
+      background-image: url("/icons/phone.svg");
+    }
+  }
+
+  &__catalog {
+    &::before {
+      @include square(16);
+      background-image: url("/icons/menu.svg");
+    }
+  }
+
+  &__search {
+    @include square(14);
+    background-image: url("/icons/search.svg");
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+    background-position: center;
+    background-size: contain;
+  }
+
+  &__cart {
+      @include square(14);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative; // Для позиционирования псевдоэлемента, если нужно
+
+    &::before{
+      content: '';
+      display: block;
+      width: #{rem(22)};
+      height: #{rem(20)};
+      background-image: url("/icons/cart.svg");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      margin-bottom: rem(4); // Отступ между иконкой и текстом
+    }
+  }
+
+  &__navigation {
+    @include square(14);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative; // Для позиционирования псевдоэлемента, если нужно
+
+    &::before{
+      content: '';
+      display: block;
+      width: #{rem(22)};
+      height: #{rem(20)};
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      margin-bottom: rem(4); // Отступ между иконкой и текстом
+    }
+
+    &__home::before{
+      background-image: url("/icons/home.svg");
+      filter: filter-color-dark();
+    }
+
+    &__cart::before{
+      background-image: url("/icons/menu-open.svg");
+      filter: filter-color-dark();
+    }
+
+    &__catalog::before{
+      background-image: url("/icons/catalog.svg");
+      filter: filter-color-dark();
+    }
+
+
+  }
+}

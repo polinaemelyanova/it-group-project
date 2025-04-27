@@ -1,0 +1,29 @@
+@use "../helpers" as *;
+
+.burger-button {
+  @include square(30);
+
+  border: none;
+  background-color: transparent; /* Прозрачный фон */
+  display: flex;
+  flex-direction: column; /* Иконка и текст в столбик */
+  align-items: center; /* Выравнивание по центру по горизонтали */
+  color: var(--color-dark);
+
+  &::before{
+    background-image: url("/icons/menu-open.svg");
+    filter: filter-color-dark();
+  }
+
+  &.is-active {
+    position: fixed;
+    z-index: 101;
+    right: 0; /* Кнопка прижимается к правому краю */
+    padding-right: rem(20);
+
+    &::before { /* Изменяем изображение при активном состоянии */
+      background-image: url("/icons/menu-close.svg");
+      filter: filter-color-dark();
+    }
+  }
+}

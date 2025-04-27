@@ -1,0 +1,79 @@
+@use "../helpers" as *;
+
+.swiper-slide {
+  a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* Основные стили для Swiper */
+.swiper-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.swiper-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: rem(10);
+}
+
+/* Уменьшаем размер стрелок и размещаем их внутри слайдера */
+.swiper-button-next,
+.swiper-button-prev {
+  width: fluid(40, 20) !important; /* Адаптивная ширина */
+  height: fluid(40, 20) !important;
+  aspect-ratio: 1 / 1 !important; /* Сохраняем форму круга */
+  background-size: 50% 50%; /* Размер иконки внутри кнопки */
+  background-color: rgba(255, 255, 255, 0.8); /* 80% белый, 20% прозрачный */
+  border-radius: 50%; /* Делаем круглыми */
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  transition-duration: var(--transition-duration);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23190f2c"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>'); /* Стрелки цвета #190f2c */
+  background-position: center;
+  background-repeat: no-repeat;
+
+
+  @include mobile {
+    display: none;
+  }
+
+  /* Изменения при наведении */
+  &:hover {
+    background-color: #714eae; /* Цвет кружка при наведении */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffffff"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>'); /* Белые стрелки при наведении */
+  }
+}
+
+.swiper-button-next {
+  right: rem(30); /* Отступ от правого края */
+}
+
+.swiper-button-prev {
+  left: rem(30); /* Отступ от левого края */
+  transform: rotate(180deg);
+}
+
+/* Убираем стандартные иконки стрелок */
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  display: none;
+}
+
+/* Изменяем цвет пагинации на розовый */
+.swiper-pagination-bullet {
+  background-color: var(--color-purple); /* Розовый цвет */
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+}

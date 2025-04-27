@@ -1,0 +1,9 @@
+@use "../helpers" as *;
+
+.logo {
+  max-width: fluid(170, 120);
+
+  @include tablet {
+    max-width: fluid(110, 90);
+  }
+}

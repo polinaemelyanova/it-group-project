@@ -1,0 +1,16 @@
+@use "../helpers" as *;
+
+.button {
+  border: none;
+  padding: #{rem(10)} #{rem(20)};
+  background-color: var(--color-purple);
+  color: var(--color-light);
+  border-radius: rem(4);
+
+  &:hover {
+    @include hover {
+      background-color: var(--color-purple-hover);
+      color: var(--color-light);
+    }
+  }
+}

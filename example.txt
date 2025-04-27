@@ -1,0 +1,32 @@
+<template>
+  <div>
+    <h1>Список пользователей</h1>
+    <div v-if="isLoading">Загрузка...</div>
+    <ul v-else>
+      <div v-if="error">
+        Ошибка при загрузке: {{ error.message }}
+      </div>
+      <li v-for="customer in customers" :key="customer.id_customer">
+        {{ customer.login }} | {{ customer.first_name }} {{ customer.last_name }}
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script lang="ts" setup>
+interface Customer {
+  id_customer: number;
+  login: string;
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+}
+
+const { data: customers, pending: isLoading, error } = await useAsyncData<Customer[]>('customers', () =>
+    $fetch('http://my-api/api.php')
+)
+
+</script>
+

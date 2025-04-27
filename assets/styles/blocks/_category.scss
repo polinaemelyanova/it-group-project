@@ -1,0 +1,41 @@
+@use "../helpers" as *;
+
+.category {
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(5,  1fr);
+    gap: rem(10);
+
+    @include mobile {
+      grid-template-columns: repeat(2,  1fr);
+    }
+  }
+
+  &__item {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding: rem(15) rem(10);
+    border-radius: rem(5);
+    box-shadow: rem(0) rem(3) rem(12) rem(4) rgba(25, 15, 44, 0.07);
+
+    &__image {
+      width: rem(80);
+      height: rem(80);
+    }
+
+    &__title {
+      font-weight: 300;
+
+      &__link::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+    }
+  }
+}
