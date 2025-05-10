@@ -6,7 +6,8 @@
     <h1>Каталог</h1>
       <div class="catalog-item"><a href="">Компьютеры</a></div>
       <div class="catalog-item"><a href="">Комплектующие</a></div>
-      <div class="catalog-item"><a href="">Процессор</a></div>
+<!--      <div class="catalog-item"><a href="">Процессор</a></div>-->
+    <NuxtLink to="/catalog/cpu">Процессоры</NuxtLink>
       <div class="catalog-item"><a href="">Материнская плата</a></div>
       <div class="catalog-item"><a href="">Видеокарта</a></div>
       <div class="catalog-item"><a href="">Оперативная память</a></div>
