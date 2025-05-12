@@ -1,62 +1,122 @@
-<script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+<script setup lang="ts">
+
+interface Product {
+  id_components: number
+  name_components: string
+  specs: string
+  price: number
+}
 
 const route = useRoute()
-const products = ref([])
+const products = ref<Product[]>([])
 
-const fetchProducts = async (category) => {
-  console.log('ЗАПРОС НА API. Категория:', category)
+const customCategoryTitles: Record<string, string> = {
+  cpu: 'Процессоры',
+  gpu: 'Видеокарты',
+  ram: 'Оперативная память',
+  motherboard: 'Материнские платы',
+  hdd: 'Жесткие диски',
+  ssd: 'SSD-накопители',
+  psu: 'Блоки питания',
+  case: 'Корпуса',
+  cooling: 'Системы охлаждения'
+}
 
+// Характеристики по категориям
+const fieldOrderByCategory: Record<string, string[]> = {
+  cpu: ['производитель', 'модель', 'сокет', 'базовая_частота', 'количество_ядер', 'tdp'],
+  gpu: ['производитель', 'модель', 'объем_памяти', 'тип_памяти', 'частота_ядра'],
+  ram: ['производитель', 'модель', 'объем', 'тип', 'частота'],
+  motherboard: ['производитель', 'сокет', 'чипсет', 'форм_фактор'],
+  hdd: ['производитель', 'объем', 'форм_фактор', 'интерфейс'],
+  ssd: ['производитель', 'объем', 'тип', 'интерфейс'],
+  psu: ['производитель', 'мощность', 'сертификация'],
+  case: ['производитель', 'форм_фактор', 'материал'],
+  cooling: ['производитель', 'тип', 'уровень_шума']
+}
+
+const formatLabel = (field: string): string => {
+  const label = field.replace(/_/g, ' ')
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
+const getSpecValue = (specs: string, field: string): string => {
   try {
-    const response = await fetch(`http://localhost/api.php?category=${category}`)
-    if (!response.ok) throw new Error('Ошибка загрузки данных')
+    const parsed = JSON.parse(specs)
+    return parsed?.[field] ?? '—'
+  } catch {
+    return '—'
+  }
+}
 
+const readableCategory = computed(() => {
+  const raw = route.params.category as string
+  return customCategoryTitles[raw] || raw
+})
+
+// Получаем порядок полей по категории
+const fieldOrder = computed(() => {
+  const raw = route.params.category as string
+  return fieldOrderByCategory[raw] ?? []
+})
+
+const fetchProducts = async (category: string) => {
+  console.log('ЗАПРОС НА API. Категория:', category)
+  try {
+    const response = await fetch(`http://my-api/api.php?category=${category}`)
+    if (!response.ok) throw new Error('Ошибка загрузки данных')
     const data = await response.json()
-    console.log('ПОЛУЧЕНО:', data)
     products.value = data
   } catch (error) {
-    console.error('ОШИБКА при получении данных:', error)
+    console.error('Ошибка при получении данных:', error)
     products.value = []
   }
 }
 
 onMounted(() => {
-  console.log('MOUNTED. Категория:', route.params.category)
-  fetchProducts(route.params.category)
+  fetchProducts(route.params.category as string)
 })
 
 watch(() => route.params.category, (newCategory) => {
-  console.log('CATEGORY CHANGED:', newCategory)
-  fetchProducts(newCategory)
+  fetchProducts(newCategory as string)
 })
 </script>
 
-
-
 <template>
-  <div>
-    <h1>Категория: {{ route.params.category }}</h1>
+  <div class="container">
+    <h1>{{ readableCategory }}</h1>
 
-    <div v-if="products.length">
+    <div v-if="products.length" class="products">
       <div
           v-for="product in products"
           :key="product.id_components"
           class="product"
       >
-        <h2>{{ product.name_components }}</h2>
-        <p>Цена: {{ product.price }} руб.</p>
+        <img
+            :src="`/images/components/${product.name_components}.png`"
+            :alt="product.name_components"
+            class="images-component"
+        />
 
-        <div v-if="product.specs">
-          <h4>Характеристики:</h4>
-          <ul>
-            <li
-                v-for="(value, key) in JSON.parse(product.specs)"
-                :key="key"
-            >
-              {{ key }}: {{ value }}
-            </li>
-          </ul>
+        <div>
+          <div class="product-name">{{ product.name_components }}</div>
+
+          <div v-if="product.specs">
+            <ul class="list-components">
+              <li
+                  v-for="field in fieldOrder"
+                  :key="field"
+              >
+                <span class="field-label">{{ formatLabel(field) }}:</span>
+                {{ getSpecValue(product.specs, field) }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="price-button">
+          <div class="price">{{ product.price }} ₽</div>
+          <button class="button button-cart">В корзину</button>
         </div>
       </div>
     </div>
