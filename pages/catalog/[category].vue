@@ -10,6 +10,7 @@ interface Product {
 const route = useRoute()
 const products = ref<Product[]>([])
 
+
 const customCategoryTitles: Record<string, string> = {
   cpu: 'Процессоры',
   gpu: 'Видеокарты',
@@ -28,17 +29,27 @@ const fieldOrderByCategory: Record<string, string[]> = {
   gpu: ['производитель', 'модель', 'объем_памяти', 'тип_памяти', 'частота_ядра'],
   ram: ['производитель', 'модель', 'объем', 'тип', 'частота'],
   motherboard: ['производитель', 'сокет', 'чипсет', 'форм_фактор'],
-  hdd: ['производитель', 'объем', 'форм_фактор', 'интерфейс'],
+  hdd: ['производитель', 'объем', 'форм-фактор', 'интерфейс'],
   ssd: ['производитель', 'объем', 'тип', 'интерфейс'],
-  psu: ['производитель', 'мощность', 'сертификация'],
-  case: ['производитель', 'форм_фактор', 'материал'],
+  psu: ['производитель', 'мощность', 'сертификат'],
+  case: ['производитель', 'форм-фактор', 'материал'],
   cooling: ['производитель', 'тип', 'уровень_шума']
 }
+
+
+// Фильтрация
+
 
 const formatLabel = (field: string): string => {
   const label = field.replace(/_/g, ' ')
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
+
+const formatPrice = (price: number | string): string => {
+  const numberPrice = typeof price === 'string' ? Number(price) : price
+  return numberPrice.toLocaleString('ru-RU')
+}
+
 
 const getSpecValue = (specs: string, field: string): string => {
   try {
@@ -98,7 +109,7 @@ watch(() => route.params.category, (newCategory) => {
             class="images-component"
         />
 
-        <div>
+        <div class="product-info">
           <div class="product-name">{{ product.name_components }}</div>
 
           <div v-if="product.specs">
@@ -115,7 +126,7 @@ watch(() => route.params.category, (newCategory) => {
         </div>
 
         <div class="price-button">
-          <div class="price">{{ product.price }} ₽</div>
+          <div class="price">{{ formatPrice(product.price) }} ₽</div>
           <button class="button button-cart">В корзину</button>
         </div>
       </div>
