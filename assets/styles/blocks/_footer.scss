@@ -5,6 +5,8 @@
     font-size: fluid(16, 14);
     color: var(--color-black);
 
+    margin-top: rem(80);
+
     &__body {
         padding-block: fluid(80, 40);
     }

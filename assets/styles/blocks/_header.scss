@@ -136,8 +136,13 @@
     display: inline-block;
     background-color: var(--color-gray);
 
+    transition: box-shadow 0.3s ease;
 
+    &:focus {
+      outline: 2px solid red;
+    }
   }
+
 
   &__contact {
     display: flex;

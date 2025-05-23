@@ -14,4 +14,11 @@
     }
   }
 
+  &-text {
+    background-color: transparent;
+    border: none;
+    color: var(--color-breadcrumbs);
+    font-size: rem(14);
+  }
+
 }
