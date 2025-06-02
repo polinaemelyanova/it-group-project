@@ -2,16 +2,15 @@
   <div>
     <Header />
     <Breadcrumbs />
-    <NuxtPage />
+    <NuxtPage :key="`${route.params.category || ''}_${route.params.id || ''}`" />
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import Header from '~/components/Header.vue';
-import Footer from '~/components/Footer.vue';
-</script>
+import Header from '~/components/Header.vue'
+import Footer from '~/components/Footer.vue'
+import { useRoute } from 'vue-router'
 
-<style scoped lang="scss">
-/* Здесь можно задать стили для layout, если нужно */
-</style>
+const route = useRoute()
+</script>

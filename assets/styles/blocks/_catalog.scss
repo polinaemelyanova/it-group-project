@@ -69,6 +69,7 @@
   width: fluid(180, 160);
   max-width: none;
 
+
   @include laptop {
     width: fluid(160, 150);
   }
@@ -127,6 +128,7 @@
   min-width: rem(252);
   max-width: rem(252);
   padding: rem(20);
+  border-radius: rem(5);
 
   &__caption {
     display: flex;
@@ -264,6 +266,67 @@
 .rotated {
   transform: rotate(90deg);
   color: var(--color-purple);
+}
+
+
+
+.sort-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.sort-button {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.dropdown {
+
+  &-button {
+    background-color: var(--color-gray);
+    color: var(--color-breadcrumbs);
+    border: 1px solid var(--color-breadcrumbs);
+
+    width: rem(240);
+  }
+
+  &-button:hover {
+    background-color: var(--color-gray) !important;
+    color: var(---color-purple-dark) !important;
+  }
+
+  &-menu {
+    position: absolute;
+    background: white;
+    border: 1px solid var(--color-dark-gray);
+    box-shadow: 0px 2px 12px -2px rgba(34, 60, 80, 0.2);
+    margin-top: 8px;
+    list-style: none;
+    padding: 0;
+    width: rem(240);
+    z-index: 50;
+
+    border-radius: rem(4);
+  }
+
+  &-menu li {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  &-menu li:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 
 

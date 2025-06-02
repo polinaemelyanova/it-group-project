@@ -2,6 +2,8 @@
 // import component
 import '@vueform/slider/themes/default.css'
 import Slider from '@vueform/slider'
+import {categories} from "@vueuse/metadata";
+import ProductImageViewer from '@/components/ProductImageViewer.vue'
 
 
 interface Product {
@@ -26,6 +28,37 @@ const products = ref<Product[]>([])
 const filteredProducts = ref<Product[]>([])
 
 const collapsedFilters = ref<Record<string, boolean>>({})
+
+
+const sortOptions = [
+  { label: 'Новинки', value: 'newest' },
+  { label: 'Дешевле', value: 'priceAsc' },
+  { label: 'Дороже', value: 'priceDesc' }
+]
+
+const sortDropdownVisible = ref(false)
+const selectedSort = ref('newest')
+
+const toggleSortDropdown = () => {
+  sortDropdownVisible.value = !sortDropdownVisible.value
+}
+
+const applySort = (value: string) => {
+  selectedSort.value = value
+  sortDropdownVisible.value = false
+
+  switch (value) {
+    case 'priceAsc':
+      filteredProducts.value.sort((a, b) => a.price - b.price)
+      break
+    case 'priceDesc':
+      filteredProducts.value.sort((a, b) => b.price - a.price)
+      break
+    case 'newest':
+      filteredProducts.value.sort((a, b) => b.id_components - a.id_components)
+      break
+  }
+}
 
 
 // Фильтры
@@ -357,21 +390,21 @@ watch(() => route.params.category, (newCategory) => {
               class="filter-header"
               @click="toggleFilterCollapse(filter.field)"
           >
-              <span class="filter-label"> {{filter.label}} </span>
-              <svg
-                  class="filter-arrow"
-                  :class="{ 'rotated': !collapsedFilters[filter.field] }"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  width="24"
-                  height="24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
+            <span class="filter-label"> {{filter.label}} </span>
+            <svg
+                class="filter-arrow"
+                :class="{ 'rotated': !collapsedFilters[filter.field] }"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                width="24"
+                height="24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
           <transition name="collapse">
             <div
                 v-show="!collapsedFilters[filter.field]"
@@ -401,19 +434,68 @@ watch(() => route.params.category, (newCategory) => {
 
 
       <div v-if="filteredProducts.length" class="products">
+        <div class="dropdown" style="position: relative;">
+          <button class="button dropdown-button" @click="toggleSortDropdown" style="display: flex; align-items: center; gap: 6px;">
+            Сортировка: {{ sortOptions.find(o => o.value === selectedSort)?.label }}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                :style="{ transform: sortDropdownVisible ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }"
+                viewBox="0 0 24 24"
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+
+          <transition name="fade">
+            <ul
+                v-if="sortDropdownVisible"
+                class="dropdown-menu"
+            >
+              <li
+                  v-for="option in sortOptions"
+                  :key="option.value"
+                  @click="applySort(option.value)"
+                  style="padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+                  @mouseover="($event.target as HTMLElement).style.background = '#eee'"
+                  @mouseleave="($event.target as HTMLElement).style.background = 'transparent'"
+              >
+                <span>{{ option.label }}</span>
+                <span v-if="selectedSort === option.value" style="color: var(--color-purple); font-weight: bold;">✓</span>
+              </li>
+            </ul>
+
+          </transition>
+        </div>
+
+
         <div
             v-for="product in filteredProducts"
             :key="product.id_components"
             class="product"
         >
-          <img
-              :src="`/images/components/${product.name_components}.png`"
-              :alt="product.name_components"
-              class="images-component"
-          />
+
+          <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
+            <ProductImageViewer
+                :imageName="product.name_components"
+                :alt="product.name_components"
+                class="images-component"
+                :disableModal="true"
+            />
+          </NuxtLink>
+
+
 
           <div class="product-info">
-            <div class="product-name">{{ product.name_components }}</div>
+            <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`"><div class="product-name">{{ product.name_components }}</div></NuxtLink>
+
+
 
             <div v-if="product.specs">
               <ul class="list-components">
