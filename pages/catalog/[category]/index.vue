@@ -4,6 +4,9 @@ import '@vueform/slider/themes/default.css'
 import Slider from '@vueform/slider'
 import {categories} from "@vueuse/metadata";
 import ProductImageViewer from '@/components/ProductImageViewer.vue'
+import AddToCartButton from "~/components/AddToCartButton.vue";
+import {ref} from "vue";
+import {useCartStore} from "~/stores/cart";
 
 
 interface Product {
@@ -22,6 +25,9 @@ interface FilterConfig {
 
 const filterConfigByCategory = ref<Record<string, FilterConfig[]>>({})
 
+const imageViewerRef = ref<InstanceType<typeof ProductImageViewer> | null>(null)
+
+const cart = useCartStore()
 
 const route = useRoute()
 const products = ref<Product[]>([])
@@ -31,9 +37,9 @@ const collapsedFilters = ref<Record<string, boolean>>({})
 
 
 const sortOptions = [
-  { label: 'Новинки', value: 'newest' },
-  { label: 'Дешевле', value: 'priceAsc' },
-  { label: 'Дороже', value: 'priceDesc' }
+  {label: 'Новинки', value: 'newest'},
+  {label: 'Дешевле', value: 'priceAsc'},
+  {label: 'Дороже', value: 'priceDesc'}
 ]
 
 const sortDropdownVisible = ref(false)
@@ -95,7 +101,7 @@ const fieldOrderByCategory: Record<string, string[]> = {
 
 // Характеристики фильтров по категориям
 const categoryFilters: Record<string, string[]> = {
-  cpu: ['производитель', 'сокет', 'количество_ядер', 'линейка' , 'tdp', 'интегрированное_графическое_ядро'],
+  cpu: ['производитель', 'сокет', 'количество_ядер', 'линейка', 'tdp', 'интегрированное_графическое_ядро'],
   gpu: ['производитель', 'интерфейс', 'объем_памяти', 'серия'],
   ram: ['производитель', 'форм-фактор', 'объем', 'тип', 'частота', 'количество_модулей', 'подсветка'],
   motherboard: ['производитель', 'сокет', 'чипсет', 'форм-фактор', 'тип_памяти'],
@@ -116,7 +122,8 @@ const availableManufacturers = computed(() => {
       if (specs?.производитель) {
         manufacturers.add(specs.производитель)
       }
-    } catch {}
+    } catch {
+    }
   })
   return Array.from(manufacturers).sort()
 })
@@ -211,7 +218,7 @@ const fieldOrder = computed(() => {
 watch(
     [products, priceRange, selectedManufacturers, filterConfigByCategory],
     () => applyFilters(),
-    { deep: true }
+    {deep: true}
 )
 
 const fetchProducts = async (category: string) => {
@@ -225,8 +232,11 @@ const fetchProducts = async (category: string) => {
     // Генерация фильтров по категории
     const generateFilters = (category: string) => {
       const specsList = products.value.map(p => {
-        try { return JSON.parse(p.specs) }
-        catch { return {} }
+        try {
+          return JSON.parse(p.specs)
+        } catch {
+          return {}
+        }
       })
 
       const fieldConfigs: FilterConfig[] = []
@@ -246,16 +256,16 @@ const fetchProducts = async (category: string) => {
         // Спец. список для cooling-сокетов (если нужен вручную):
         if (category === 'cooling' && field === 'сокет') {
           options = [
-            'AM5','AM4','LGA1851','LGA1700','LGA1200','LGA1151-v2','LGA1151',
-            'LGA1366','AM3+','LGA1156','LGA2011','LGA2011-3','LGA1150','LGA1155',
-            'LGA2066','754','939','940','AM2+','AM3','FM2','FM2+','LGA775',
-            'SP3','TR4','sTRX4'
+            'AM5', 'AM4', 'LGA1851', 'LGA1700', 'LGA1200', 'LGA1151-v2', 'LGA1151',
+            'LGA1366', 'AM3+', 'LGA1156', 'LGA2011', 'LGA2011-3', 'LGA1150', 'LGA1155',
+            'LGA2066', '754', '939', '940', 'AM2+', 'AM3', 'FM2', 'FM2+', 'LGA775',
+            'SP3', 'TR4', 'sTRX4'
           ]
         }
 
         // Естественная (натуральная) сортировка
         options.sort((a, b) =>
-            String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' })
+            String(a).localeCompare(String(b), undefined, {numeric: true, sensitivity: 'base'})
         )
 
         if (options.length) {
@@ -354,7 +364,7 @@ watch(() => route.params.category, (newCategory) => {
               width="24"
               height="24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
           </svg>
         </div>
 
@@ -379,7 +389,6 @@ watch(() => route.params.category, (newCategory) => {
         </transition>
 
 
-
         <!-- Дополнительные фильтры -->
         <div
             v-for="filter in filterConfigByCategory[route.params.category as string] ?? []"
@@ -390,7 +399,7 @@ watch(() => route.params.category, (newCategory) => {
               class="filter-header"
               @click="toggleFilterCollapse(filter.field)"
           >
-            <span class="filter-label"> {{filter.label}} </span>
+            <span class="filter-label"> {{ filter.label }} </span>
             <svg
                 class="filter-arrow"
                 :class="{ 'rotated': !collapsedFilters[filter.field] }"
@@ -402,7 +411,7 @@ watch(() => route.params.category, (newCategory) => {
                 width="24"
                 height="24"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
           </div>
           <transition name="collapse">
@@ -427,15 +436,13 @@ watch(() => route.params.category, (newCategory) => {
         </div>
 
 
-
-
       </div>
-
 
 
       <div v-if="filteredProducts.length" class="products">
         <div class="dropdown" style="position: relative;">
-          <button class="button dropdown-button" @click="toggleSortDropdown" style="display: flex; align-items: center; gap: 6px;">
+          <button class="button dropdown-button" @click="toggleSortDropdown"
+                  style="display: flex; align-items: center; gap: 6px;">
             Сортировка: {{ sortOptions.find(o => o.value === selectedSort)?.label }}
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -467,7 +474,8 @@ watch(() => route.params.category, (newCategory) => {
                   @mouseleave="($event.target as HTMLElement).style.background = 'transparent'"
               >
                 <span>{{ option.label }}</span>
-                <span v-if="selectedSort === option.value" style="color: var(--color-purple); font-weight: bold;">✓</span>
+                <span v-if="selectedSort === option.value"
+                      style="color: var(--color-purple); font-weight: bold;">✓</span>
               </li>
             </ul>
 
@@ -487,14 +495,15 @@ watch(() => route.params.category, (newCategory) => {
                 :alt="product.name_components"
                 class="images-component"
                 :disableModal="true"
+                ref="imageViewerRef"
             />
           </NuxtLink>
 
 
-
           <div class="product-info">
-            <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`"><div class="product-name">{{ product.name_components }}</div></NuxtLink>
-
+            <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
+              <div class="product-name">{{ product.name_components }}</div>
+            </NuxtLink>
 
 
             <div v-if="product.specs">
@@ -512,7 +521,12 @@ watch(() => route.params.category, (newCategory) => {
 
           <div class="price-button">
             <div class="price">{{ formatPrice(product.price) }} ₽</div>
-            <button class="button button-cart">В корзину</button>
+            <AddToCartButton
+                :id="product.id_components"
+                :name="product.name_components"
+                :price="product.price"
+                :image="imageViewerRef?.imageSrc"
+            />
           </div>
         </div>
       </div>

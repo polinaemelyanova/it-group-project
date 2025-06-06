@@ -7,92 +7,92 @@
         <div class="category-grid">
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/pc" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/pc.png" alt="Компьютеры">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Компьютеры</a>
+              <NuxtLink to="/catalog/pc" class="category__item__title__link">Компьютеры</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/cpu" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/cpu.png" alt="Процессоры">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Процессоры</a>
+              <NuxtLink to="/catalog/cpu" class="category__item__title__link">Процессоры</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/gpu" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/graphics_card.png" alt="Видеокарты">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Видеокарты</a>
+              <NuxtLink to="/catalog/gpu" class="category__item__title__link">Видеокарты</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/ssd" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/m2.png" alt="SSD накопители">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">SSD накопители</a>
+              <NuxtLink to="/catalog/ssd" class="category__item__title__link">SSD накопители</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/motherboard" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/motherboard.png" alt="Материнская плата">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Материнские платы</a>
+              <NuxtLink to="/catalog/motherboard" class="category__item__title__link">Материнские платы</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/psu" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/psu.png" alt="Блоки питания">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Блоки питания</a>
+              <NuxtLink to="/catalog/psu" class="category__item__title__link">Блоки питания</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/ram" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/ram.png" alt="Оперативная память">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Оперативная память</a>
+              <NuxtLink to="/catalog/ram" class="category__item__title__link">Оперативная память</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/hdd" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/storage.png" alt="HDD накопители">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">HDD накопители</a>
+              <NuxtLink to="/catalog/hdd" class="category__item__title__link">HDD накопители</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/cooling" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/cooling.png" alt="Системы охлаждения">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Системы охлаждения</a>
+              <NuxtLink to="/catalog/cooling" class="category__item__title__link">Системы охлаждения</NuxtLink>
             </h4>
           </div>
 
           <div class="category__item">
-            <a href="/" class="category__item__image-wrapper">
+            <NuxtLink to="/catalog/case" class="category__item__image-wrapper">
               <img class="category__item__image" src="/images/corpus.png" alt="Корпусы">
-            </a>
+            </NuxtLink>
             <h4 class="category__item__title">
-              <a href="/" class="category__item__title__link">Корпусы</a>
+              <NuxtLink to="/catalog/case" class="category__item__title__link">Корпуса</NuxtLink>
             </h4>
           </div>
 

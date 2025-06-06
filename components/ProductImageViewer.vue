@@ -10,7 +10,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const availableExtensions = ['png', 'jpg', 'jpeg', 'webp']
-
+const emit = defineEmits<{ (e: 'loaded', src: string): void }>()
 const imageSrc = ref<string | undefined>(undefined)
 const showModal = ref(false)
 
@@ -53,6 +53,10 @@ const closeModal = () => {
   showModal.value = false
   document.body.classList.remove('no-scroll')  // Восстановить прокрутку
 }
+
+defineExpose({
+  imageSrc,
+})
 </script>
 
 <template>
@@ -127,3 +131,6 @@ const closeModal = () => {
   opacity: 0;
 }
 </style>
+
+
+

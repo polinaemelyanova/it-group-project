@@ -32,6 +32,7 @@ const isHomePage = computed(() => route.path === '/');
 const customTitles: Record<string, string> = {
   'catalog': 'Каталог',
   'products': 'Товары',
+  'cart': 'Корзина',
   'user-profile': 'Профиль пользователя',
   'checkout': 'Оформление заказа',
   'cpu': 'Процессоры',

@@ -70,7 +70,7 @@
           </form>
 
         </div>
-        <a href="/" class="header__cart icon__cart hidden-tablet">Корзина</a>
+        <NuxtLink to="/cart" class="header__cart icon__cart hidden-tablet">Корзина</NuxtLink>
       </div>
     </div>
   </header>

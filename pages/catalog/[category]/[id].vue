@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick, computed } from 'vue'
 import ProductImageViewer from '@/components/ProductImageViewer.vue'
+import AddToCartButton from "~/components/AddToCartButton.vue";
+import { useCartStore } from '@/stores/cart'
 
 
 interface Product {
@@ -11,11 +13,68 @@ interface Product {
   price: number
 }
 
+const specCategoriesMap: Record<string, Record<string, string[]>> = {
+  cpu: {
+    'Основные': ['производитель', 'модель', 'сокет', 'линейка', 'серия', 'количество_ядер', 'количество_потоков'],
+    'Частотные характеристики': ['базовая_частота', 'максимальная_частота', 'tdp', 'техпроцесс'],
+    'Кэш': ['кеш_L1', 'кеш_L2', 'кеш_L3'],
+    'Поддержка': ['встроенная_графика', 'интегрированное_графическое_ядро', 'технологии'],
+  },
+  motherboard: {
+    'Основные': ['производитель', 'модель', 'сокет', 'чипсет', 'форм-фактор'],
+    'Память': ['тип_памяти', 'слоты_памяти', 'макс_объем_памяти'],
+    'Интерфейсы': ['разъемы_SATA', 'разъемы_M2', 'слоты_PCIe'],
+    'Сеть и звук': ['сетевая_карта', 'встроенное_аудио'],
+  },
+  gpu: {
+    'Основные': ['производитель', 'модель', 'серия', 'разгон', 'интерфейс'],
+    'Видеопроцессор': ['частота_ядра'],
+    'Память': ['объем_памяти', 'тип_памяти', 'разрядность_шины', 'частота_памяти'],
+    'Дополнительно': ['разъемы', 'охлаждение', 'длина', 'рекомендуемый_блок_питания'],
+  },
+  ram: {
+    'Основные': ['производитель', 'модель', 'тип', 'объем'],
+    'Частотные характеристики': ['частота', 'тайминги', 'напряжение'],
+    'Физические параметры': ['количество_модулей', 'форм-фактор', 'радиатор', 'подсветка'],
+  },
+  psu: {
+    'Основные': ['производитель', 'модель', 'мощность', 'сертификат', 'форм-фактор'],
+    'Разъемы': ['разъемы'],
+    'Особенности': ['модульный', 'вентилятор'],
+  },
+  case: {
+    'Основные': ['производитель', 'модель', 'форм-фактор', 'материал', 'цвет'],
+    'Размеры и компоновка': ['размеры', 'размещение_БП', 'поддержка_СЖО'],
+    'Дополнительно': ['окно', 'вентиляторы', 'отсеки_HDD', 'отсеки_SSD'],
+  },
+  hdd: {
+    'Основные': ['производитель', 'модель', 'объем', 'емкость', 'тип', 'форм-фактор'],
+    'Характеристики': ['интерфейс', 'скорость', 'буфер'],
+  },
+  ssd: {
+    'Основные': ['производитель', 'модель', 'объем', 'емкость', 'тип', 'форм-фактор'],
+    'Интерфейс и скорость': ['интерфейс', 'чтение', 'запись'],
+    'Дополнительно': ['ресурс', 'назначение'],
+  },
+  cooling: {
+    'Основные': ['производитель', 'модель', 'тип', 'высота'],
+    'Характеристики': ['уровень_шума', 'шум', 'вентилятор'],
+    'Совместимость': ['сокет'],
+    'Дополнительно': ['подсветка', 'рассеиваемая_мощность'],
+  },
+};
+
+const cart = useCartStore()
+const router = useRouter()
+
+const imageViewerRef = ref<InstanceType<typeof ProductImageViewer> | null>(null)
+
 const route = useRoute()
 const product = ref<Product | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const specFields = ref<string[]>([])
+const allSpecsSection = ref<HTMLElement | null>(null)
 
 const formatLabel = (field: string): string => {
   const label = field.replace(/_/g, ' ')
@@ -35,7 +94,6 @@ const getSpecValue = (specs: string, field: string): string => {
     return '—'
   }
 }
-
 
 const fetchProduct = async (category: string, id: string) => {
   loading.value = true
@@ -60,12 +118,48 @@ const fetchProduct = async (category: string, id: string) => {
   }
 }
 
-// Загружаем товар при монтировании
+
+const scrollToSpecs = () => {
+  nextTick(() => {
+    allSpecsSection.value?.scrollIntoView({ behavior: 'smooth' })
+  })
+}
+
+const categorizedSpecs = computed(() => {
+  if (!product.value) return {}
+
+  try {
+    const specs = JSON.parse(product.value.specs || '{}')
+    const category = route.params.category as string
+    const mapping = specCategoriesMap[category] || {}
+
+    const result: Record<string, string[]> = {}
+    const usedKeys = new Set<string>()
+
+    for (const [section, keys] of Object.entries(mapping)) {
+      const presentKeys = keys.filter(key => specs[key] !== undefined)
+      if (presentKeys.length > 0) {
+        result[section] = presentKeys
+        presentKeys.forEach(key => usedKeys.add(key))
+      }
+    }
+
+    // Добавим оставшиеся поля в "Дополнительно"
+    const remaining = Object.keys(specs).filter(k => !usedKeys.has(k))
+    if (remaining.length > 0) {
+      result['Дополнительно'] = remaining
+    }
+
+    return result
+  } catch {
+    return {}
+  }
+})
+
 onMounted(() => {
   fetchProduct(route.params.category as string, route.params.id as string)
 })
 
-// Обновляем товар при изменении параметров маршрута
 watch(
     () => [route.params.category, route.params.id],
     ([newCategory, newId]) => {
@@ -75,6 +169,8 @@ watch(
 </script>
 
 
+
+
 <template>
   <div class="container">
     <button @click="$router.back()" class="button-text back-button">← Назад</button>
@@ -82,27 +178,55 @@ watch(
     <div v-if="loading">Загрузка...</div>
     <div v-else-if="error">{{ error }}</div>
 
-
     <div v-else-if="product" class="product-page-container">
       <h1 class="h1 product-title">{{ product.name_components }}</h1>
-      <div class="product-page">
-        <ProductImageViewer :imageName="product.name_components" :alt="product.name_components" class="product-image"/>
 
+      <div class="product-page">
+        <ProductImageViewer
+            ref="imageViewerRef"
+            :imageName="product.name_components"
+            :alt="product.name_components"
+            class="product-image"
+        />
 
         <div class="product-details">
-          <ul>
-            <li v-for="field in specFields" :key="field">
-              <strong>{{ formatLabel(field) }}:</strong> {{ getSpecValue(product.specs, field) }}
+          <ul class="mb10">
+            <li v-for="field in specFields.slice(0, 8)" :key="field">
+              <span class="field-label ">{{ formatLabel(field) }}:</span> {{ getSpecValue(product.specs, field) }}
             </li>
           </ul>
+
+          <button @click="scrollToSpecs" class="button-text field-label button-specs">
+            Все характеристики ↓
+          </button>
         </div>
 
         <div class="product-price">
-          <div class="price">
-            {{ formatPrice(product.price) }} ₽
-          </div>
+          <div class="price">{{ formatPrice(product.price) }} ₽</div>
+          <AddToCartButton
+              :id="product.id_components"
+              :name="product.name_components"
+              :price="product.price"
+              :image="imageViewerRef?.imageSrc"
+          />
+        </div>
+      </div>
 
-          <button class="button button-cart">В корзину</button>
+      <!-- Характеристики внизу -->
+      <div ref="allSpecsSection" class="all-specs-section">
+        <h2 class="h2">Все характеристики</h2>
+        <div
+            v-for="(fields, category) in categorizedSpecs"
+            :key="category"
+            class="spec-category"
+        >
+          <h2 class="h3 features-title">{{ category }}</h2>
+          <ul class="spec-list">
+            <li v-for="field in fields" :key="field" class="spec-row">
+              <span class="field-label">{{ formatLabel(field) }}:</span>
+              <span class="field-value">{{ getSpecValue(product.specs, field) }}</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -112,5 +236,6 @@ watch(
     </div>
   </div>
 </template>
+
 
 
