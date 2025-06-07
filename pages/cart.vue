@@ -2,9 +2,11 @@
 // Импортируем стор корзины
 import { useCartStore } from '@/stores/cart'
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 // Получаем доступ к стору
 const cart = useCartStore()
+const router = useRouter()
 
 // Функция для удаления товара
 function removeFromCart(id: number) {
@@ -14,6 +16,19 @@ function removeFromCart(id: number) {
 // Функция для очистки корзины
 function clearCart() {
   cart.clear()
+}
+
+function increaseQuantity(id: number) {
+  cart.increaseQuantity(id)
+}
+
+function decreaseQuantity(id: number) {
+  cart.decreaseQuantity(id)
+}
+
+// переход на страницу оформления заказа
+function goToCheckout() {
+  router.push('/checkout')
 }
 </script>
 
@@ -27,49 +42,69 @@ function clearCart() {
     </div>
 
     <div v-else class="cart-container">
-      <div class="cart__table"></div>
-        <table class="cart-table" border="1" cellpadding="8" cellspacing="0">
-          <thead>
-          <tr>
-            <th>Изображение</th>
-            <th>Название</th>
-            <th>Цена за шт.</th>
-            <th>Количество</th>
-            <th>Итого</th>
-            <th>Действия</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="item in cart.items" :key="item.id">
-            <td>
-              <img
-                  :src="item.image"
-                  :alt="item.name"
-                  class="cart-image"
-              />
-            </td>
-            <td>{{ item.name }}</td>
-            <td>{{ item.price.toLocaleString('ru-RU') }} ₽</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ (item.price * item.quantity).toLocaleString('ru-RU') }} ₽</td>
-            <td>
-              <button @click="removeFromCart(item.id)">Удалить</button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+      <div class="cart__rows">
+        <div
+            v-for="item in cart.items"
+            :key="item.id"
+            class="cart__row"
+        >
+          <div class="cart__cell image">
+            <NuxtLink :to="`catalog/${item.category}/${item.id}`">
+              <img :src="item.image" :alt="item.name" class="cart-image" />
+            </NuxtLink>
+          </div>
 
-      <div class="cart-summary" style="margin-top: 20px;">
-        <h3 class="h3">Ваш заказ</h3>
-        <div><strong>Всего товаров:</strong> {{ cart.totalCount }}</div>
-        <div><strong>Общая сумма:</strong> {{ cart.totalPrice.toLocaleString('ru-RU') }} ₽</div>
+          <div class="cart__cell name">
+            <NuxtLink :to="`/catalog/${item.category}/${item.id}`" class="cart-link">
+              {{ item.name }}
+            </NuxtLink>
+          </div>
 
-        <button class="button">Оформить заказ</button>
+          <div class="cart__cell quantity">
+            <button @click="decreaseQuantity(item.id)" class="quantity-button" aria-label="Уменьшить количество" :disabled="item.quantity <= 1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+
+            <span class="quantity-value">{{ item.quantity }}</span>
+
+            <button @click="increaseQuantity(item.id)" class="quantity-button" aria-label="Увеличить количество">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+
+
+          <div class="cart__cell total">
+            {{ (item.price * item.quantity).toLocaleString('ru-RU') }} ₽
+          </div>
+
+          <div class="cart__cell actions">
+            <button @click="removeFromCart(item.id)" class="remove-button" aria-label="Удалить товар">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon-cross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
       </div>
 
 
+      <div class="cart-summary">
+        <h3 class="h3">Ваш заказ</h3>
+        <div class="cart-summary__item">Всего товаров: <span>{{ cart.totalCount }}</span></div>
+        <div class="cart-summary__item">Общая сумма: <span>{{ cart.totalPrice.toLocaleString('ru-RU') }} ₽</span></div>
+
+        <button class="button cart-summary__button" @click="goToCheckout">Оформить заказ</button>
+      </div>
     </div>
   </div>
 </template>
+
 
 

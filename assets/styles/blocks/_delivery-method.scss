@@ -1,0 +1,54 @@
+.delivery-method {
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    @media (min-width: 640px) {
+      flex-direction: row;
+    }
+  }
+
+  .option {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      border-color: var(--color-purple);
+      background-color: var(--color-purple-light);
+      transition-duration: 0.5s;
+    }
+
+    &:hover {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .option-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .option-description {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+  }
+}
+
+
+

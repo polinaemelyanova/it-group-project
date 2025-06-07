@@ -7,6 +7,7 @@ interface Props {
   id: number
   name: string
   price: number
+  category: string
   image?: string
 }
 
@@ -26,6 +27,7 @@ function handleClick() {
       name: props.name,
       price: props.price,
       quantity: 1,
+      category: props.category,
       image: props.image || '/images/components/placeholder.png',
     })
   } else {

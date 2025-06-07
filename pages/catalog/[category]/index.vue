@@ -14,6 +14,7 @@ interface Product {
   name_components: string
   specs: string
   price: number
+  category: string
 }
 
 interface FilterConfig {
@@ -227,7 +228,12 @@ const fetchProducts = async (category: string) => {
     const response = await fetch(`http://my-api/api.php?category=${category}`)
     if (!response.ok) throw new Error('Ошибка загрузки данных')
     const data = await response.json()
-    products.value = data
+    // Добавляем category каждому товару
+    const productsWithCategory = data.map((item: any) => ({
+      ...item,
+      category
+    }))
+    products.value = productsWithCategory
 
     // Генерация фильтров по категории
     const generateFilters = (category: string) => {
@@ -526,6 +532,7 @@ watch(() => route.params.category, (newCategory) => {
                 :name="product.name_components"
                 :price="product.price"
                 :image="imageViewerRef?.imageSrc"
+                :category="product.category"
             />
           </div>
         </div>

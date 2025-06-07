@@ -10,6 +10,7 @@ interface Product {
   id_components: number
   name_components: string
   specs: string
+  category: string
   price: number
 }
 
@@ -107,6 +108,11 @@ const fetchProduct = async (category: string, id: string) => {
       product.value = null
     } else {
       product.value = data[0]
+
+      if (product.value) {
+        product.value.category = category;
+      }
+
       const specsObj = JSON.parse(product.value?.specs || '{}')
       specFields.value = Object.keys(specsObj)
     }
@@ -208,6 +214,7 @@ watch(
               :name="product.name_components"
               :price="product.price"
               :image="imageViewerRef?.imageSrc"
+              :category="product.category"
           />
         </div>
       </div>

@@ -1,0 +1,91 @@
+@use "../helpers" as *;
+
+.order {
+  &-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__comment {
+    height: rem(150);
+  }
+}
+
+
+.checkout-form .order__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100%;
+}
+
+.checkout-form {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 50px;
+}
+
+.checkout-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkout-form input,
+.checkout-form textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+
+.order-summary {
+  position: sticky;
+  top: rem(130); // расстояние от верха (высота шапки)
+  align-self: flex-start;
+
+  padding: 20px;
+  border-radius: 4px;
+  background: var(--color-gray);
+  min-width: 320px;
+  height: fit-content;
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 12px;
+
+    &__left {
+      text-align: left;
+    }
+
+    &__right {
+      text-align: right;
+    }
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--color-dark-gray);
+    margin: 16px 0;
+  }
+
+  .summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+}
+
+.confirm-button {
+  display: flex;
+  justify-content: center;
+  margin-inline: auto; // центрирование по горизонтали
+  margin-block: rem(40) 0;
+}

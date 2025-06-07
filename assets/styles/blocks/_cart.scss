@@ -1,23 +1,81 @@
 @use "../helpers" as *;
 
 .cart {
-  &-table {
-    width: rem(900);
-    border-collapse: collapse;
-    margin-left: 0;  // Явно указываем нулевой отступ слева
-    margin-right: auto; // Прижимаем к левому краю
+  &-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: rem(30);
+    flex-wrap: nowrap;
+  }
+
+  &__rows {
+    flex: 1 1 rem(700); // гибкий блок
+    min-width: 0; // важно для предотвращения переполнения
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__row {
+    display: flex;
+    align-items: start;
+    border-bottom: 1px solid #ccc;
+    padding-block: rem(30);
+    min-height: rem(120);
+    gap: rem(30);
+  }
+
+  &__cell {
+    display: flex;
+    justify-content: center;
+
+      &.quantity {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        button {
+          padding: 0 rem(8);
+          font-size: rem(20);
+          font-weight: bold;
+          color: var(--color-breadcrumbs);
+          background-color: transparent;
+          border: none;
+
+          &:hover {
+            color: var(--color-purple);
+          }
+        }
+      }
+
+
+    &.image {
+      flex: 0 0 rem(150);
+    }
+
+    &.name {
+      flex: 1;
+      justify-content: flex-start;
+    }
+
+    &.quantity {
+      flex: 0 0 rem(80);
+    }
+
+    &.total {
+      flex: 0 0 rem(150);
+    }
+
+    &.actions {
+      flex: 0 0 rem(90);
+    }
   }
 
   &-image {
     width: rem(150);
+    height: rem(150);
     object-fit: contain;
     border-radius: 4px;
-  }
-
-  &-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
   }
 
   &__button-clear {
@@ -25,17 +83,94 @@
     font-size: rem(18);
   }
 
-  &-summary{
+  &-summary {
+    position: sticky;
+    top: rem(130); // расстояние от верха (высота шапки)
+    align-self: flex-start;
+    flex: 0 0 rem(250);
     background-color: var(--color-gray);
     padding: rem(20);
     border-radius: rem(4);
-    margin: 0 !important;
-  }
+    margin: 0;
+    height: fit-content;
 
-  .cart-table th,
-  .cart-table td {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+
+    &__button {
+      display: flex;
+      justify-content: center;
+    }
+
+    &__item {
+      display: flex;
+      justify-content: space-between;
+
+      span {
+        font-weight: bold;
+      }
+    }
+
+
+    h3,
+    div {
+      margin-bottom: rem(20);
+    }
   }
 }
+
+.remove-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 rem(4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-cross {
+  width: 24px;
+  height: 24px;
+  stroke: var(--color-breadcrumbs);
+}
+
+.remove-button:hover .icon-cross {
+  stroke: var(--color-purple);
+}
+
+.quantity-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-minus,
+.icon-plus {
+  width: 20px;
+  height: 20px;
+  stroke: var(--color-breadcrumbs);
+}
+
+.quantity-button:hover .icon-minus,
+.quantity-button:hover .icon-plus {
+  stroke: var(--color-purple);
+}
+
+.quantity-value {
+  display: inline-block;
+  min-width: 30px;
+  text-align: center;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+
+
+
 
 

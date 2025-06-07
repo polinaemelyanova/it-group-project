@@ -7,6 +7,7 @@ export interface CartItem {
     name: string
     price: number
     quantity: number
+    category: string
     image: string // путь к изображению
 }
 
@@ -25,6 +26,7 @@ export const useCartStore = defineStore('cart', () => {
     const totalPrice = computed(() =>
         items.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
     )
+
 
     // 3. Действия — функции для изменения состояния корзины
 
@@ -52,8 +54,39 @@ export const useCartStore = defineStore('cart', () => {
         items.value = []
     }
 
+    // Увеличить количество товара по id
+    function increaseQuantity(id: number) {
+        const item = items.value.find(i => i.id === id)
+        if (item) {
+            item.quantity++
+        }
+    }
+
+    // Уменьшить количество товара по id
+    function decreaseQuantity(id: number) {
+        const item = items.value.find(i => i.id === id)
+        if (item) {
+            if (item.quantity > 1) {
+                item.quantity--
+            } else {
+                // Если количество стало 0 — удаляем товар из корзины
+                removeItem(id)
+            }
+        }
+    }
+
+
     // 4. Возвращаем все, что хотим использовать вне стора
-    return { items, totalCount, totalPrice, addItem, removeItem, clear }
+    return {
+        items,
+        totalCount,
+        totalPrice,
+        addItem,
+        removeItem,
+        clear,
+        increaseQuantity, // ← добавлено
+        decreaseQuantity  // ← добавлено
+    }
 }, {
     persist: true, // Включаем сохранение в localStorage
 })

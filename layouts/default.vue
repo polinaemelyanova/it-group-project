@@ -1,8 +1,10 @@
 <template>
-  <div>
+  <div class="layout">
     <Header />
     <Breadcrumbs />
-    <NuxtPage :key="`${route.params.category || ''}_${route.params.id || ''}`" />
+    <main class="layout__main">
+      <NuxtPage :key="`${route.params.category || ''}_${route.params.id || ''}`" />
+    </main>
     <Footer />
   </div>
 </template>
