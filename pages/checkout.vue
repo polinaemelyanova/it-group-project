@@ -9,34 +9,69 @@
     <div v-else class="order-container">
       <form @submit.prevent="submitOrder" class="checkout-form">
         <div class="order__fields">
-          <label>
-            Город доставки
-            <input v-model="city" placeholder="Введите город" required />
-          </label>
+
+          <div class="city-autocomplete">
+            <label>
+              Город доставки
+              <input
+                  v-model="city"
+                  @input="onCityInput"
+                  @focus="showCitySuggestions = true"
+                  @blur="hideCitySuggestionsWithDelay"
+                  placeholder="Введите город"
+                  required
+              />
+            </label>
+            <ul v-if="showCitySuggestions && citySuggestions.length" class="suggestions">
+              <li
+                  v-for="s in citySuggestions"
+                  :key="s"
+                  @mousedown.prevent="selectCity(s)"
+              >
+                {{ s }}
+              </li>
+            </ul>
+          </div>
 
           <label>
             Способ доставки
-            <!-- Подключаем компонент выбора доставки -->
-            <DeliveryMethod v-model="deliveryMethod" :options="deliveryOptions"/>
+            <DeliveryMethod v-model="deliveryMethod" :options="deliveryOptions" />
           </label>
 
-
-          <label>
-            Адрес доставки:
-            <textarea v-model="address" placeholder="Введите адрес" required></textarea>
-          </label>
-
+          <div class="city-autocomplete" v-if="pickupSelect">
+            <label>
+              Адрес доставки:
+              <input
+                  v-model="address"
+                  @input="onAddressInput"
+                  @focus="showSuggestions = true"
+                  @blur="hideSuggestionsWithDelay"
+                  placeholder="Введите адрес"
+                  required
+              />
+            </label>
+            <ul v-if="showSuggestions && suggestions.length" class="suggestions">
+              <li
+                  v-for="s in suggestions"
+                  :key="s"
+                  @mousedown.prevent="selectAddress(s)"
+              >
+                {{ s }}
+              </li>
+            </ul>
+          </div>
 
           <label>
             Данные получателя
             <input v-model="name" placeholder="ФИО" required />
-            <input v-model="phone" placeholder="Телефон" type="tel" required />
-            <input v-model="email" type="email" placeholder="Электронная почта" required />
+            <div class="combined-fields">
+              <input v-model="phone" ref="phoneInput" placeholder="+7 (___) ___-__-__" type="tel" required />
+              <input v-model="email" type="email" placeholder="Электронная почта" required />
+            </div>
           </label>
 
           <label>
             Способы оплаты
-            <!-- Подключаем компонент выбора оплаты -->
             <DeliveryMethod v-model="paymentMethod" :options="paymentOptions" />
           </label>
 
@@ -72,9 +107,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useRouter } from 'vue-router'
+import debounce from 'lodash/debounce'
+import IMask from 'imask'
+
+const phoneInput = ref<HTMLInputElement | null>(null)
 
 const cart = useCartStore()
 const router = useRouter()
@@ -85,6 +124,11 @@ const email = ref('')
 const address = ref('')
 const city = ref('')
 const comment = ref('')
+
+const suggestions = ref<string[]>([])
+const showSuggestions = ref(false)
+const citySuggestions = ref<string[]>([])
+const showCitySuggestions = ref(false)
 
 const deliveryMethod = ref('courier')
 const paymentMethod = ref('card')
@@ -104,10 +148,9 @@ const deliveryOptions = [
 
 const paymentOptions = [
   { value: 'card', title: 'Картой онлайн', description: 'После оформления заказа вы перейдете на платежную страницу для завершения оплаты' },
-  { value: 'cash', title: 'Наличные курьеру', description: 'Оплата при получении курьеру и самовывозе из пункта выдачи.' },
+  { value: 'cash', title: 'Картой или наличными', description: 'Оплата при получении курьеру и самовывозе из пункта выдачи.' },
   { value: 'bank', title: 'Безналичный расчет', description: 'Для юр. лиц и ИП' }
 ]
-
 
 const selectedDeliveryMethodLabel = computed(() => {
   switch (deliveryMethod.value) {
@@ -120,21 +163,103 @@ const selectedDeliveryMethodLabel = computed(() => {
   }
 })
 
+const pickupSelect = computed(() => deliveryMethod.value === 'courier')
 
+async function fetchSuggestions(query: string) {
+  if (query.length < 3 || !city.value.trim()) {
+    suggestions.value = []
+    return
+  }
+
+  const token = '514e40c7c0d47f9926ce6531eaa563c8f489f7a9'
+  const response = await fetch('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Token ${token}`
+    },
+    body: JSON.stringify({
+      query: `${city.value}, ${query}`,
+      from_bound: { value: 'street' },
+      // to_bound: { value: 'house' }, // старый вариант — убираем или меняем
+      to_bound: { value: 'flat' } // расширяем до квартир
+    })
+  })
+
+  const data = await response.json()
+  suggestions.value = data.suggestions.map((s: any) => s.value)
+}
+
+
+async function fetchCitySuggestions(query: string) {
+  if (query.length < 3) {
+    citySuggestions.value = []
+    return
+  }
+
+  const token = '514e40c7c0d47f9926ce6531eaa563c8f489f7a9'
+  const response = await fetch('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Token ${token}`
+    },
+    body: JSON.stringify({
+      query,
+      locations: [{ country: 'Россия' }],
+      from_bound: { value: 'city' },
+      to_bound: { value: 'city' }
+    })
+  })
+
+  const data = await response.json()
+  citySuggestions.value = data.suggestions.map((s: any) => s.value)
+}
+
+const fetchSuggestionsDebounced = debounce(fetchSuggestions, 1000)
+const fetchCitySuggestionsDebounced = debounce(fetchCitySuggestions, 500)
+
+function onAddressInput() {
+  showSuggestions.value = true
+  fetchSuggestionsDebounced(address.value)
+}
+
+function onCityInput() {
+  showCitySuggestions.value = true
+  fetchCitySuggestionsDebounced(city.value)
+}
+
+function selectAddress(val: string) {
+  address.value = val
+  showSuggestions.value = false
+}
+
+function selectCity(val: string) {
+  city.value = val
+  showCitySuggestions.value = false
+}
+
+function hideSuggestionsWithDelay() {
+  window.setTimeout(() => (showSuggestions.value = false), 200)
+}
+
+function hideCitySuggestionsWithDelay() {
+  window.setTimeout(() => (showCitySuggestions.value = false), 200)
+}
 
 function submitOrder() {
-  // Здесь можно сделать отправку заказа на сервер (POST запрос)
   alert('Спасибо за заказ!')
-
-  // Очистить корзину
   cart.clear()
-
-  // Перенаправить на главную или страницу благодарности
   router.push('/')
 }
+
+onMounted(() => {
+  if (phoneInput.value) {
+    IMask(phoneInput.value, {
+      mask: '+{7} (000) 000-00-00'
+    })
+  }
+})
 </script>
-
-<style scoped>
-
-
-</style>

@@ -89,3 +89,39 @@
   margin-inline: auto; // центрирование по горизонтали
   margin-block: rem(40) 0;
 }
+
+.combined-fields {
+  display: flex;
+  gap: 15px;
+  margin-top: rem(15);
+
+  input {
+    width: 100%;
+  }
+}
+
+.suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  width: 100%;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestions li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
+.city-autocomplete {
+  position: relative;
+}
