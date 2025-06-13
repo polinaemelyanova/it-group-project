@@ -24,7 +24,7 @@
   border-bottom: 1px solid #ccc;
   display: grid;
   grid-template-columns: 1fr 4fr auto;
-  gap: rem(100);
+  gap: rem(50);
   align-items: flex-start;
 
   @include tablet {

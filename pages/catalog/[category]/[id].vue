@@ -5,7 +5,6 @@ import ProductImageViewer from '@/components/ProductImageViewer.vue'
 import AddToCartButton from "~/components/AddToCartButton.vue";
 import { useCartStore } from '@/stores/cart'
 
-
 interface Product {
   id_components: number
   name_components: string
@@ -13,6 +12,36 @@ interface Product {
   category: string
   price: number
 }
+
+interface Configuration {
+  id_configuration: number
+  name_configuration: string
+  name_component: string
+  id_component: number
+  specs: string
+  image: string
+  price_configuration: number
+  type_configuration: number
+  // specss: string // JSON-строка
+  category: 'pc'
+}
+
+interface ConfigurationComponent {
+  id_configuration: number
+  name_configuration: string
+  name_component: string
+  id_component: number
+  specs: string
+  image: string
+  price_configuration: number
+  type_configuration: number
+  specss: string // JSON-строка
+  category: 'pc'
+  // и любые другие поля из SQL-запроса
+}
+
+const configuration = ref<ConfigurationComponent[] | null>(null)
+
 
 const specCategoriesMap: Record<string, Record<string, string[]>> = {
   cpu: {
@@ -77,6 +106,7 @@ const error = ref<string | null>(null)
 const specFields = ref<string[]>([])
 const allSpecsSection = ref<HTMLElement | null>(null)
 
+
 const formatLabel = (field: string): string => {
   const label = field.replace(/_/g, ' ')
   return label.charAt(0).toUpperCase() + label.slice(1)
@@ -99,33 +129,56 @@ const getSpecValue = (specs: string, field: string): string => {
 const fetchProduct = async (category: string, id: string) => {
   loading.value = true
   error.value = null
-  try {
-    const response = await fetch(`http://my-api/product.php?category=${category}&id=${id}`)
-    if (!response.ok) throw new Error('Ошибка загрузки данных')
-    const data = await response.json()
-    if (data.length === 0) {
-      error.value = 'Товар не найден'
-      product.value = null
-    } else {
-      product.value = data[0]
+  if (category != 'pc') {
+    try {
+      const response = await fetch(`http://my-api/product.php?category=${category}&id=${id}`)
+      if (!response.ok) throw new Error('Ошибка загрузки данных')
+      const data = await response.json()
+      if (data.length === 0) {
+        error.value = 'Товар не найден'
+        product.value = null
+      } else {
+        product.value = data[0]
 
-      if (product.value) {
-        product.value.category = category;
+        if (product.value) {
+          product.value.category = category;
+        }
+
+        const specsObj = JSON.parse(product.value?.specs || '{}')
+        specFields.value = Object.keys(specsObj)
       }
-
-      const specsObj = JSON.parse(product.value?.specs || '{}')
-      specFields.value = Object.keys(specsObj)
+    } catch (e) {
+      error.value = (e as Error).message || 'Ошибка при загрузке'
+      product.value = null
+    } finally {
+      loading.value = false
     }
-  } catch (e) {
-    error.value = (e as Error).message || 'Ошибка при загрузке'
-    product.value = null
-  } finally {
-    loading.value = false
+  } else {
+    try {
+      const response = await fetch(`http://my-api/configuration.php?id=${id}`)
+      if (!response.ok) throw new Error('Ошибка загрузки данных')
+      const data = await response.json()
+
+      if (data.length === 0) {
+        error.value = 'Сборка не найдена'
+        configuration.value = null
+      } else {
+        configuration.value = data.map((item: ConfigurationComponent) => ({
+          ...item,
+          specs: item.specs || '{}'
+        }))
+      }
+    } catch (e) {
+      error.value = (e as Error).message || 'Ошибка при загрузке'
+      configuration.value = null
+    } finally {
+      loading.value = false
+    }
   }
 }
 
 
-const scrollToSpecs = () => {
+  const scrollToSpecs = () => {
   nextTick(() => {
     allSpecsSection.value?.scrollIntoView({ behavior: 'smooth' })
   })
@@ -237,6 +290,29 @@ watch(
         </div>
       </div>
     </div>
+
+
+    <div v-else-if="configuration && configuration.length" class="product-page-container">
+      <h1 class="h1 product-title">{{ configuration[0].name_configuration }}</h1>
+
+      <div class="product-page" v-for="component in configuration" :key="component.id_component">
+        <div class="product-details">
+          <h2 class="h2">{{ component.name_component }}</h2>
+          <ul>
+            <li v-for="(value, key) in JSON.parse(component.specs || '{}')" :key="key">
+              <span class="field-label">{{ formatLabel(key) }}:</span> {{ value }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="product-price">
+        <div class="price">
+          Общая цена: {{ formatPrice(configuration[0].price_configuration) }} ₽
+        </div>
+      </div>
+    </div>
+
 
     <div v-else>
       <p>Товар не найден.</p>

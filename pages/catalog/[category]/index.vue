@@ -1,13 +1,11 @@
 <script setup lang="ts">
-// import component
 import '@vueform/slider/themes/default.css'
 import Slider from '@vueform/slider'
-import {categories} from "@vueuse/metadata";
 import ProductImageViewer from '@/components/ProductImageViewer.vue'
-import AddToCartButton from "~/components/AddToCartButton.vue";
-import {ref} from "vue";
-import {useCartStore} from "~/stores/cart";
-
+import AddToCartButton from "~/components/AddToCartButton.vue"
+import { ref, computed, watch, onMounted } from "vue"
+import { useRoute } from "vue-router"
+import { useCartStore } from "~/stores/cart"
 
 interface Product {
   id_components: number
@@ -17,6 +15,22 @@ interface Product {
   category: string
 }
 
+interface Component {
+  id_components: number
+  name_components: string
+  name_type: string
+  specs: string
+}
+
+interface Configuration {
+  id_configuration: number
+  name_configuration: string
+  image: string
+  price_configuration: number
+  components: Component[]
+  category: 'pc'
+}
+
 interface FilterConfig {
   label: string
   field: string
@@ -24,16 +38,37 @@ interface FilterConfig {
   selected: string[]
 }
 
+interface Specs {
+  [key: string]: any
+  производитель?: string
+  модель?: string
+}
+
+// Улучшенная функция для парсинга JSON
+const safeJsonParse = (str: string): Specs => {
+  try {
+    const parsed = JSON.parse(str)
+    // Если specs уже являются строкой JSON
+    if (typeof parsed === 'string') {
+      try {
+        return JSON.parse(parsed)
+      } catch {
+        return {}
+      }
+    }
+    return parsed
+  } catch {
+    return {}
+  }
+}
+
 const filterConfigByCategory = ref<Record<string, FilterConfig[]>>({})
-
 const imageViewerRef = ref<InstanceType<typeof ProductImageViewer> | null>(null)
-
 const cart = useCartStore()
-
 const route = useRoute()
 const products = ref<Product[]>([])
 const filteredProducts = ref<Product[]>([])
-
+const configurations = ref<Configuration[]>([])
 const collapsedFilters = ref<Record<string, boolean>>({})
 
 
@@ -67,9 +102,7 @@ const applySort = (value: string) => {
   }
 }
 
-
 // Фильтры
-// Добавляем переменные для пределов цен
 const minPrice = ref(0)
 const maxPrice = ref(250000)
 const priceRange = ref<[number, number]>([0, 250000])
@@ -84,10 +117,10 @@ const customCategoryTitles: Record<string, string> = {
   ssd: 'SSD-накопители',
   psu: 'Блоки питания',
   case: 'Корпуса',
-  cooling: 'Системы охлаждения'
+  cooling: 'Системы охлаждения',
+  pc: 'Компьютеры',
 }
 
-// Характеристики по категориям
 const fieldOrderByCategory: Record<string, string[]> = {
   cpu: ['производитель', 'модель', 'сокет', 'базовая_частота', 'количество_ядер', 'tdp'],
   gpu: ['производитель', 'модель', 'объем_памяти', 'тип_памяти', 'частота_ядра'],
@@ -100,7 +133,6 @@ const fieldOrderByCategory: Record<string, string[]> = {
   cooling: ['производитель', 'тип', 'уровень_шума']
 }
 
-// Характеристики фильтров по категориям
 const categoryFilters: Record<string, string[]> = {
   cpu: ['производитель', 'сокет', 'количество_ядер', 'линейка', 'tdp', 'интегрированное_графическое_ядро'],
   gpu: ['производитель', 'интерфейс', 'объем_памяти', 'серия'],
@@ -113,19 +145,54 @@ const categoryFilters: Record<string, string[]> = {
   cooling: ['производитель', 'тип', 'сокет', 'подсветка']
 }
 
+const fields = [
+  'cpu.производитель',
+  'cpu.ядра',
+  'cpu.название',
+  'gpu.производитель',
+  'gpu.модель',
+  'ram.объем',
+  'ram.тип',
+  'ssd.объем',
+  'motherboard.формат',
+  'case.тип',
+  'case.цвет',
+  'cooling.тип'
+]
 
-// Получаем уникальных производителей для текущей категории
+const displayNames: Record<string, string> = {
+  'cpu.производитель': 'Производитель процессора',
+  'cpu.ядра': 'Количество ядер процессора',
+  'cpu.название': 'Модель процессора',
+  'gpu.производитель': 'Производитель видеокарты',
+  'gpu.модель': 'Модель видеокарты',
+  'ram.объем': 'Объём оперативной памяти',
+  'ram.тип': 'Тип оперативной памяти',
+  'ssd.объем': 'Объём SSD',
+  'motherboard.формат': 'Формат материнской платы',
+  'case.тип': 'Тип корпуса',
+  'case.цвет': 'Цвет корпуса',
+  'cooling.тип': 'Тип охлаждения'
+}
+
 const availableManufacturers = computed(() => {
+  const currentCategory = route.params.category as string
   const manufacturers = new Set<string>()
-  products.value.forEach(product => {
-    try {
-      const specs = JSON.parse(product.specs)
-      if (specs?.производитель) {
-        manufacturers.add(specs.производитель)
-      }
-    } catch {
-    }
-  })
+
+  if (currentCategory === 'pc') {
+    configurations.value.forEach(config => {
+      config.components.forEach(component => {
+        const specs = safeJsonParse(component.specs)
+        if (specs?.производитель) manufacturers.add(specs.производитель)
+      })
+    })
+  } else {
+    products.value.forEach(product => {
+      const specs = safeJsonParse(product.specs)
+      if (specs?.производитель) manufacturers.add(specs.производитель)
+    })
+  }
+
   return Array.from(manufacturers).sort()
 })
 
@@ -133,44 +200,85 @@ const toggleFilterCollapse = (field: string) => {
   collapsedFilters.value[field] = !collapsedFilters.value[field]
 }
 
-
-// Применяем фильтры
 const applyFilters = () => {
   const currentCategory = route.params.category as string
   const filters = filterConfigByCategory.value[currentCategory] ?? []
 
-  filteredProducts.value = products.value.filter(product => {
-    try {
-      const specs = JSON.parse(product.specs)
-      const price = product.price
-      const manufacturer = specs?.производитель || ''
-
+  if (currentCategory === 'pc') {
+    const filteredConfigs = configurations.value.filter(config => {
+      const price = config.price_configuration
       const priceInRange = price >= priceRange.value[0] && price <= priceRange.value[1]
-      const manufacturerMatch =
-          selectedManufacturers.value.length === 0 ||
-          selectedManufacturers.value.includes(manufacturer)
+
+      const manufacturerMatch = selectedManufacturers.value.length === 0 ||
+          config.components.some(component => {
+            const specs = safeJsonParse(component.specs)
+            return selectedManufacturers.value.includes(specs?.производитель || '')
+          })
 
       const additionalFiltersMatch = filters.every(f => {
-        const specValue = specs?.[f.field]
+        return config.components.some(component => {
+          const specs = safeJsonParse(component.specs)
+          const [type, prop] = f.field.includes('.') ? f.field.split('.') : [f.field]
 
-        // Если значение — массив, проверим есть ли пересечение
-        if (Array.isArray(specValue)) {
-          return f.selected.length === 0 || specValue.some((val: string) => f.selected.includes(val))
-        }
+          // Для конфигураций ПК проверяем соответствие типа компонента
+          if (type !== component.name_type) return false
 
-        // Если значение — обычное (строка / число)
-        return f.selected.length === 0 || f.selected.includes(specValue)
+          const specValue = prop ? specs?.[prop] : specs
+
+          if (Array.isArray(specValue)) {
+            return f.selected.length === 0 || specValue.some((val: string) => f.selected.includes(val))
+          }
+          return f.selected.length === 0 || (specValue && f.selected.includes(specValue))
+        })
       })
 
       return priceInRange && manufacturerMatch && additionalFiltersMatch
-    } catch {
-      return false
-    }
+    })
+
+    filteredProducts.value = filteredConfigs.map(config => ({
+      id_components: config.id_configuration,
+      name_components: config.name_configuration,
+      specs: JSON.stringify({
+        ...config.components.reduce((acc, component) => ({
+          ...acc,
+          [component.name_type]: safeJsonParse(component.specs)
+        }), {}),
+        components: config.components.map(c => ({
+          type: c.name_type,
+          name: c.name_components,
+          id: c.id_components
+        }))
+      }),
+      price: config.price_configuration,
+      category: 'pc'
+    }))
+    return
+  }
+
+  filteredProducts.value = products.value.filter(product => {
+    const specs = safeJsonParse(product.specs)
+    const price = product.price
+    const manufacturer = specs?.производитель || ''
+
+    const priceInRange = price >= priceRange.value[0] && price <= priceRange.value[1]
+    const manufacturerMatch =
+        selectedManufacturers.value.length === 0 ||
+        selectedManufacturers.value.includes(manufacturer)
+
+    const additionalFiltersMatch = filters.every(f => {
+      const specValue = specs?.[f.field]
+      if (Array.isArray(specValue)) {
+        return f.selected.length === 0 || specValue.some((val: string) => f.selected.includes(val))
+      }
+      return f.selected.length === 0 || (specValue && f.selected.includes(specValue))
+    })
+
+    return priceInRange && manufacturerMatch && additionalFiltersMatch
   })
+
+  applySort(selectedSort.value)
 }
 
-
-// Сбрасываем фильтры
 const resetFilters = () => {
   priceRange.value = [minPrice.value, maxPrice.value]
   selectedManufacturers.value = []
@@ -196,12 +304,8 @@ const formatPrice = (price: number | string): string => {
 }
 
 const getSpecValue = (specs: string, field: string): string => {
-  try {
-    const parsed = JSON.parse(specs)
-    return parsed?.[field] ?? '—'
-  } catch {
-    return '—'
-  }
+  const parsed = safeJsonParse(specs)
+  return parsed?.[field] ?? '—'
 }
 
 const readableCategory = computed(() => {
@@ -209,13 +313,11 @@ const readableCategory = computed(() => {
   return customCategoryTitles[raw] || raw
 })
 
-// Получаем порядок полей по категории
 const fieldOrder = computed(() => {
   const raw = route.params.category as string
   return fieldOrderByCategory[raw] ?? []
 })
 
-// При изменении продуктов или фильтров - применяем фильтрацию
 watch(
     [products, priceRange, selectedManufacturers, filterConfigByCategory],
     () => applyFilters(),
@@ -223,87 +325,177 @@ watch(
 )
 
 const fetchProducts = async (category: string) => {
-  console.log('ЗАПРОС НА API. Категория:', category)
-  try {
-    const response = await fetch(`http://my-api/api.php?category=${category}`)
-    if (!response.ok) throw new Error('Ошибка загрузки данных')
-    const data = await response.json()
-    // Добавляем category каждому товару
-    const productsWithCategory = data.map((item: any) => ({
-      ...item,
-      category
-    }))
-    products.value = productsWithCategory
+  console.log('Запрос данных для категории:', category)
 
-    // Генерация фильтров по категории
-    const generateFilters = (category: string) => {
-      const specsList = products.value.map(p => {
-        try {
-          return JSON.parse(p.specs)
-        } catch {
-          return {}
+  if (category !== 'pc') {
+    try {
+      const response = await fetch(`http://my-api/api.php?category=${category}`)
+      if (!response.ok) throw new Error('Ошибка загрузки данных')
+      const data = await response.json()
+
+      products.value = data.map((item: any) => ({
+        ...item,
+        category
+      }))
+
+      const generateFilters = (category: string) => {
+        const specsList = products.value.map(p => safeJsonParse(p.specs))
+        const fieldConfigs: FilterConfig[] = []
+        const categoryFields = categoryFilters[category] ?? []
+
+        for (const field of categoryFields) {
+          if (field === 'производитель') continue
+
+          let options = Array.from(new Set(
+              specsList.flatMap(s => {
+                const v = s[field]
+                return Array.isArray(v) ? v : (v != null ? [v] : [])
+              })
+          ))
+
+          if (category === 'cooling' && field === 'сокет') {
+            options = [
+              'AM5', 'AM4', 'LGA1851', 'LGA1700', 'LGA1200', 'LGA1151-v2', 'LGA1151',
+              'LGA1366', 'AM3+', 'LGA1156', 'LGA2011', 'LGA2011-3', 'LGA1150', 'LGA1155',
+              'LGA2066', '754', '939', '940', 'AM2+', 'AM3', 'FM2', 'FM2+', 'LGA775',
+              'SP3', 'TR4', 'sTRX4'
+            ]
+          }
+
+          options.sort((a, b) =>
+              String(a).localeCompare(String(b), undefined, {numeric: true, sensitivity: 'base'})
+          )
+
+          if (options.length) {
+            fieldConfigs.push({
+              label: formatLabel(field),
+              field,
+              options,
+              selected: [],
+            })
+          }
+
+        }
+
+        filterConfigByCategory.value[category] = fieldConfigs
+      }
+
+      generateFilters(category)
+
+      const prices = data.map((p: Product) => p.price)
+      minPrice.value = Math.min(...prices)
+      maxPrice.value = Math.max(...prices)
+      priceRange.value = [minPrice.value, maxPrice.value]
+
+      filteredProducts.value = products.value
+      applyFilters()
+      applySort(selectedSort.value)
+    } catch (error) {
+      console.error('Ошибка при получении данных:', error)
+      products.value = []
+      filteredProducts.value = []
+    }
+  } else {
+    try {
+      const response = await fetch(`http://my-api/configurations.php`)
+      if (!response.ok) throw new Error('Ошибка загрузки данных')
+      const data = await response.json()
+
+      // Группируем компоненты по конфигурациям
+      const configMap = new Map<number, Configuration>()
+
+      data.forEach((row: any) => {
+        if (!configMap.has(row.id_configuration)) {
+          configMap.set(row.id_configuration, {
+            id_configuration: row.id_configuration,
+            name_configuration: row.name_configuration,
+            image: row.image || '',
+            price_configuration: row.price_configuration,
+            components: [],
+            category: 'pc'
+          })
+        }
+
+        if (row.id_components) {
+          configMap.get(row.id_configuration)?.components.push({
+            id_components: row.id_components,
+            name_components: row.name_components,
+            name_type: row.name_type,
+            specs: row.specs
+          })
         }
       })
 
+      configurations.value = Array.from(configMap.values())
+      console.log('Processed configurations:', configurations.value)
+
+      // Генерируем фильтры для ПК
+      const specsList = configurations.value.map(config => {
+        return config.components.reduce((acc: Record<string, Specs>, component) => {
+          acc[component.name_type] = safeJsonParse(component.specs)
+          return acc
+        }, {})
+      })
+
       const fieldConfigs: FilterConfig[] = []
-      const categoryFields = categoryFilters[category] ?? []
+      for (const field of fields) {
+        const [type, prop] = field.split('.')
+        const values = specsList
+            .map(specs => specs[type]?.[prop])
+            .filter(Boolean)
+            .flat() // На случай, если значение массив
 
-      for (const field of categoryFields) {
-        if (field === 'производитель') continue
+        const uniqueValues = Array.from(new Set(values))
+            .sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true, sensitivity: 'base'}))
 
-        // Собираем все значения (учитывая и массивы)
-        let options = Array.from(new Set(
-            specsList.flatMap(s => {
-              const v = s[field]
-              return Array.isArray(v) ? v : (v != null ? [v] : [])
-            })
-        ))
-
-        // Спец. список для cooling-сокетов (если нужен вручную):
-        if (category === 'cooling' && field === 'сокет') {
-          options = [
-            'AM5', 'AM4', 'LGA1851', 'LGA1700', 'LGA1200', 'LGA1151-v2', 'LGA1151',
-            'LGA1366', 'AM3+', 'LGA1156', 'LGA2011', 'LGA2011-3', 'LGA1150', 'LGA1155',
-            'LGA2066', '754', '939', '940', 'AM2+', 'AM3', 'FM2', 'FM2+', 'LGA775',
-            'SP3', 'TR4', 'sTRX4'
-          ]
-        }
-
-        // Естественная (натуральная) сортировка
-        options.sort((a, b) =>
-            String(a).localeCompare(String(b), undefined, {numeric: true, sensitivity: 'base'})
-        )
-
-        if (options.length) {
+        if (uniqueValues.length > 0) {
           fieldConfigs.push({
-            label: formatLabel(field),
+            label: displayNames[field] ?? formatLabel(prop),
             field,
-            options,
-            selected: [],
+            options: uniqueValues,
+            selected: []
           })
         }
       }
 
-      filterConfigByCategory.value[category] = fieldConfigs
+      filterConfigByCategory.value['pc'] = fieldConfigs
+      console.log('Generated PC filters:', fieldConfigs)
+
+      // Обновляем ценовой диапазон
+      const prices = configurations.value.map(c => c.price_configuration)
+      minPrice.value = Math.min(...prices)
+      maxPrice.value = Math.max(...prices)
+      priceRange.value = [minPrice.value, maxPrice.value]
+
+      // Формируем filteredProducts
+      filteredProducts.value = configurations.value.map(config => ({
+        id_components: config.id_configuration,
+        name_components: config.name_configuration,
+        specs: JSON.stringify({
+          ...config.components.reduce((acc, component) => ({
+            ...acc,
+            [component.name_type]: safeJsonParse(component.specs)
+          }), {}),
+          components: config.components.map(c => ({
+            type: c.name_type,
+            name: c.name_components,
+            id: c.id_components
+          }))
+        }),
+        price: config.price_configuration,
+        category: 'pc'
+      }))
+
+      applyFilters()
+      applySort(selectedSort.value)
+
+      console.log('Generated PC filters:', fieldConfigs);
+      console.log('Filter config by category:', filterConfigByCategory.value);
+    } catch (error) {
+      console.error('Ошибка при получении данных:', error)
+      configurations.value = []
+      filteredProducts.value = []
     }
-
-
-    generateFilters(category)
-
-    // Вычисляем минимальную и максимальную цену
-    const prices = data.map((p: Product) => p.price)
-    const min = Math.min(...prices)
-    const max = Math.max(...prices)
-    minPrice.value = min
-    maxPrice.value = max
-    priceRange.value = [min, max] // Инициализируем фильтр диапазоном цен
-
-    filteredProducts.value = data
-    applyFilters()
-  } catch (error) {
-    console.error('Ошибка при получении данных:', error)
-    products.value = []
-    filteredProducts.value = []
   }
 }
 
@@ -354,7 +546,7 @@ watch(() => route.params.category, (newCategory) => {
             class="custom-slider"
         />
 
-        <div
+        <div v-if="route.params.category != 'pc'"
             class="filter-header mb15"
             @click="toggleFilterCollapse('производитель')"
         >
@@ -375,7 +567,7 @@ watch(() => route.params.category, (newCategory) => {
         </div>
 
         <transition name="collapse">
-          <div
+          <div v-if="route.params.category != 'pc'"
               v-show="!collapsedFilters['производитель']"
               class="checkboxes mb30 scrollable-filter collapse-content"
           >
@@ -489,54 +681,56 @@ watch(() => route.params.category, (newCategory) => {
         </div>
 
 
-        <div
-            v-for="product in filteredProducts"
-            :key="product.id_components"
-            class="product"
-        >
+          <div
+              v-for="product in filteredProducts"
+              :key="product.id_components"
+              class="product"
+          >
 
-          <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
-            <ProductImageViewer
-                :imageName="product.name_components"
-                :alt="product.name_components"
-                class="images-component"
-                :disableModal="true"
-                ref="imageViewerRef"
-            />
-          </NuxtLink>
-
-
-          <div class="product-info">
             <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
-              <div class="product-name">{{ product.name_components }}</div>
+              <ProductImageViewer
+                  :imageName="product.name_components"
+                  :alt="product.name_components"
+                  class="images-component"
+                  :disableModal="true"
+                  ref="imageViewerRef"
+              />
             </NuxtLink>
 
 
-            <div v-if="product.specs">
-              <ul class="list-components">
-                <li
-                    v-for="field in fieldOrder"
-                    :key="field"
-                >
-                  <span class="field-label">{{ formatLabel(field) }}:</span>
-                  {{ getSpecValue(product.specs, field) }}
-                </li>
-              </ul>
+            <div class="product-info">
+              <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
+                <div class="product-name">{{ product.name_components }}</div>
+              </NuxtLink>
+
+
+              <div v-if="product.specs">
+                <ul class="list-components">
+                  <li
+                      v-for="field in fieldOrder"
+                      :key="field"
+                  >
+                    <span class="field-label">{{ formatLabel(field) }}:</span>
+                    {{ getSpecValue(product.specs, field) }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="price-button">
+              <div class="price">{{ formatPrice(product.price) }} ₽</div>
+              <AddToCartButton
+                  :id="product.id_components"
+                  :name="product.name_components"
+                  :price="product.price"
+                  :image="imageViewerRef?.imageSrc"
+                  :category="product.category"
+              />
             </div>
           </div>
-
-          <div class="price-button">
-            <div class="price">{{ formatPrice(product.price) }} ₽</div>
-            <AddToCartButton
-                :id="product.id_components"
-                :name="product.name_components"
-                :price="product.price"
-                :image="imageViewerRef?.imageSrc"
-                :category="product.category"
-            />
-          </div>
         </div>
-      </div>
+
+
 
       <div v-else-if="products.length">
         <p>Нет товаров, соответствующих выбранным фильтрам.</p>
