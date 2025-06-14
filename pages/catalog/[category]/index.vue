@@ -146,18 +146,37 @@ const categoryFilters: Record<string, string[]> = {
 }
 
 const fields = [
-  'cpu.производитель',
-  'cpu.ядра',
-  'cpu.название',
-  'gpu.производитель',
-  'gpu.модель',
-  'ram.объем',
-  'ram.тип',
-  'ssd.объем',
-  'motherboard.формат',
-  'case.тип',
-  'case.цвет',
-  'cooling.тип'
+  'процессор.производитель',
+  'процессор.модель',
+  'процессор.серия',
+  'процессор.сокет',
+  'процессор.разгон',
+  'процессор.техпроцесс',
+  'процессор.количество_ядер',
+  'процессор.количество_потоков',
+  'процессор.интегрированное_графическое_ядро',
+  'видеокарта.производитель',
+  'видеокарта.серия',
+  'видеокарта.объем_памяти',
+  'видеокарта.тип_памяти',
+  'видеокарта.интерфейс',
+  'оперативная память.производитель',
+  'оперативная память.тип',
+  'оперативная память.объем',
+  'оперативная память.количество_модулей',
+  'материнская плата.производитель',
+  'материнская плата.чипсет',
+  'материнская плата.сокет',
+  'твердотельный накопитель.производитель',
+  'твердотельный накопитель.объем',
+  'твердотельный накопитель.тип',
+  'блок питания.производитель',
+  'блок питания.мощность',
+  'корпус.производитель',
+  'корпус.цвет',
+  'корпус.форм-фактор',
+  'система охлаждения.производитель',
+  'система охлаждения.тип'
 ]
 
 const displayNames: Record<string, string> = {
@@ -186,6 +205,10 @@ const availableManufacturers = computed(() => {
         if (specs?.производитель) manufacturers.add(specs.производитель)
       })
     })
+    console.log("configurations.value", configurations.value);
+    configurations.value.forEach((config, idx) => {
+      console.log(`Config #${idx} (${config.name_configuration}):`, config.components);
+    });
   } else {
     products.value.forEach(product => {
       const specs = safeJsonParse(product.specs)
@@ -396,10 +419,13 @@ const fetchProducts = async (category: string) => {
       filteredProducts.value = []
     }
   } else {
+    console.log("Category is pc, proceeding to fetch configurations...");
     try {
+      console.log("Category is pc, proceeding to fetch configurations...");
       const response = await fetch(`http://my-api/configurations.php`)
       if (!response.ok) throw new Error('Ошибка загрузки данных')
       const data = await response.json()
+      console.log('Fetched data from configurations.php:', data)
 
       // Группируем компоненты по конфигурациям
       const configMap = new Map<number, Configuration>()
@@ -436,6 +462,7 @@ const fetchProducts = async (category: string) => {
           return acc
         }, {})
       })
+      console.log('specsList', specsList)
 
       const fieldConfigs: FilterConfig[] = []
       for (const field of fields) {
@@ -497,6 +524,18 @@ const fetchProducts = async (category: string) => {
       filteredProducts.value = []
     }
   }
+}
+
+function getImageUrl(name: string): string {
+  // Можно поддержать расширения, если хочешь универсальность
+  const extensions = ['png', 'jpg', 'jpeg', 'webp']
+  for (const ext of extensions) {
+    // здесь нужно проверить существование файла, или просто отдать первый вариант
+    // для простоты:
+    return `/images/components/${name}.${ext}`;
+  }
+  // или возвращать плейсхолдер
+  return '/images/components/placeholder.png'
 }
 
 onMounted(() => {
@@ -723,7 +762,7 @@ watch(() => route.params.category, (newCategory) => {
                   :id="product.id_components"
                   :name="product.name_components"
                   :price="product.price"
-                  :image="imageViewerRef?.imageSrc"
+                  :image="getImageUrl(product.name_components)"
                   :category="product.category"
               />
             </div>

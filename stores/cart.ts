@@ -32,9 +32,9 @@ export const useCartStore = defineStore('cart', () => {
 
     // Добавить товар в корзину
     function addItem(item: CartItem) {
-        // Ищем, есть ли уже такой товар в корзине
-        const existing = items.value.find(i => i.id === item.id)
 
+        // Ищем, есть ли уже такой товар в корзине
+        const existing = items.value.find(i => i.id === item.id && i.category === item.category)
         if (existing) {
             // Если есть, увеличиваем количество
             existing.quantity += item.quantity
@@ -46,31 +46,31 @@ export const useCartStore = defineStore('cart', () => {
 
     // Удалить товар по id
     function removeItem(id: number) {
-        items.value = items.value.filter(i => i.id !== id)
+        items.value = items.value.filter(i => i.id !== id);
     }
 
-    // Очистить корзину
+// Очистить корзину
     function clear() {
-        items.value = []
+        items.value = [];
     }
 
-    // Увеличить количество товара по id
+// Увеличить количество товара по id
     function increaseQuantity(id: number) {
-        const item = items.value.find(i => i.id === id)
+        const item = items.value.find(i => i.id === id);
         if (item) {
-            item.quantity++
+            item.quantity = (item.quantity ?? 0) + 1;
         }
     }
 
-    // Уменьшить количество товара по id
+// Уменьшить количество товара по id
     function decreaseQuantity(id: number) {
-        const item = items.value.find(i => i.id === id)
+        const item = items.value.find(i => i.id === id);
         if (item) {
-            if (item.quantity > 1) {
-                item.quantity--
+            if ((item.quantity ?? 1) > 1) {
+                item.quantity = item.quantity - 1;
             } else {
-                // Если количество стало 0 — удаляем товар из корзины
-                removeItem(id)
+                // Если количество стало 1 и нужно уменьшить — удаляем товар из корзины
+                removeItem(id);
             }
         }
     }

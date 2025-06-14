@@ -17,7 +17,7 @@ const cart = useCartStore()
 const router = useRouter()
 
 const isInCart = computed(() => {
-  return cart.items.some(item => item.id === props.id)
+  return cart.items.some(item => item.id === props.id && item.category === props.category)
 })
 
 function handleClick() {

@@ -13,30 +13,20 @@ interface Product {
   price: number
 }
 
-interface Configuration {
-  id_configuration: number
-  name_configuration: string
-  name_component: string
-  id_component: number
-  specs: string
-  image: string
-  price_configuration: number
-  type_configuration: number
-  // specss: string // JSON-строка
-  category: 'pc'
-}
 
 interface ConfigurationComponent {
   id_configuration: number
   name_configuration: string
-  name_component: string
+  name_type: string
   id_component: number
+  name_components: string
   specs: string
   image: string
   price_configuration: number
   type_configuration: number
   specss: string // JSON-строка
   category: 'pc'
+  type_product: number
   // и любые другие поля из SQL-запроса
 }
 
@@ -91,6 +81,154 @@ const specCategoriesMap: Record<string, Record<string, string[]>> = {
     'Характеристики': ['уровень_шума', 'шум', 'вентилятор'],
     'Совместимость': ['сокет'],
     'Дополнительно': ['подсветка', 'рассеиваемая_мощность'],
+  },
+};
+
+const specTypeMap: Record<string, Record<string, Record<string, string[]>>> = {
+  '1': {
+    'Процессор': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'сокет',
+        'линейка',
+        'серия',
+        'количество_ядер',
+        'количество_потоков',
+      ],
+      'Частотные характеристики': [
+        'базовая_частота',
+        'максимальная_частота',
+        'tdp',
+        'техпроцесс',
+      ],
+      'Кэш': ['кеш_L1', 'кеш_L2', 'кеш_L3'],
+      'Поддержка': [
+        'встроенная_графика',
+        'интегрированное_графическое_ядро',
+        'технологии',
+      ],
+    },
+  },
+  '2': {
+    'Материнская плата': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'сокет',
+        'чипсет',
+        'форм-фактор',
+      ],
+      'Память': ['тип_памяти', 'слоты_памяти', 'макс_объем_памяти'],
+      'Интерфейсы': ['разъемы_SATA', 'разъемы_M2', 'слоты_PCIe'],
+      'Сеть и звук': ['сетевая_карта', 'встроенное_аудио'],
+    },
+  },
+  '3': {
+    'Видеокарта': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'серия',
+        'разгон',
+        'интерфейс',
+      ],
+      'Видеопроцессор': ['частота_ядра'],
+      'Память': [
+        'объем_памяти',
+        'тип_памяти',
+        'разрядность_шины',
+        'частота_памяти',
+      ],
+      'Дополнительно': [
+        'разъемы',
+        'охлаждение',
+        'длина',
+        'рекомендуемый_блок_питания',
+      ],
+    },
+  },
+  '4': {
+    'Оперативная память': {
+      'Основные': ['производитель', 'модель', 'тип', 'объем'],
+      'Частотные характеристики': ['частота', 'тайминги', 'напряжение'],
+      'Физические параметры': [
+        'количество_модулей',
+        'форм-фактор',
+        'радиатор',
+        'подсветка',
+      ],
+    },
+  },
+  '5': {
+    'Блок питания': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'мощность',
+        'сертификат',
+        'форм-фактор',
+      ],
+      'Разъемы': ['разъемы'],
+      'Особенности': ['модульный', 'вентилятор'],
+    },
+  },
+  '6': {
+    'Корпус': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'форм-фактор',
+        'материал',
+        'цвет',
+      ],
+      'Размеры и компоновка': [
+        'размеры',
+        'размещение_БП',
+        'поддержка_СЖО',
+      ],
+      'Дополнительно': [
+        'окно',
+        'вентиляторы',
+        'отсеки_HDD',
+        'отсеки_SSD',
+      ],
+    },
+  },
+  '7': {
+    'Жёсткий диск (HDD)': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'объем',
+        'емкость',
+        'тип',
+        'форм-фактор',
+      ],
+      'Характеристики': ['интерфейс', 'скорость', 'буфер'],
+    },
+  },
+  '8': {
+    'Твердотельный накопитель (SSD)': {
+      'Основные': [
+        'производитель',
+        'модель',
+        'объем',
+        'емкость',
+        'тип',
+        'форм-фактор',
+      ],
+      'Интерфейс и скорость': ['интерфейс', 'чтение', 'запись'],
+      'Дополнительно': ['ресурс', 'назначение'],
+    },
+  },
+  '9': {
+    'Охлаждение': {
+      'Основные': ['производитель', 'модель', 'тип', 'высота'],
+      'Характеристики': ['уровень_шума', 'шум', 'вентилятор'],
+      'Совместимость': ['сокет'],
+      'Дополнительно': ['подсветка', 'рассеиваемая_мощность'],
+    },
   },
 };
 
@@ -165,7 +303,8 @@ const fetchProduct = async (category: string, id: string) => {
       } else {
         configuration.value = data.map((item: ConfigurationComponent) => ({
           ...item,
-          specs: item.specs || '{}'
+          specs: item.specs || '{}',
+          category: category,
         }))
       }
     } catch (e) {
@@ -214,6 +353,38 @@ const categorizedSpecs = computed(() => {
     return {}
   }
 })
+
+const categorizedComponentSpecs = (component: ConfigurationComponent) => {
+  try {
+    const specs = JSON.parse(component.specs || '{}');
+    const typeMap = specTypeMap[component.type_product];
+    if (!typeMap) return { typeName: 'Неизвестно', sections: {} };
+
+    const [typeName] = Object.keys(typeMap);
+    const mapping = typeMap[typeName] || {};
+
+    const result: Record<string, string[]> = {};
+    const usedKeys = new Set<string>();
+
+    for (const [section, keys] of Object.entries(mapping)) {
+      const presentKeys = keys.filter(key => specs[key] !== undefined);
+      if (presentKeys.length > 0) {
+        result[section] = presentKeys;
+        presentKeys.forEach(key => usedKeys.add(key));
+      }
+    }
+
+    const remaining = Object.keys(specs).filter(k => !usedKeys.has(k));
+    if (remaining.length > 0) {
+      result['Дополнительно'] = remaining;
+    }
+
+    // Возвращаем и название типа, и секции
+    return { typeName, sections: result };
+  } catch {
+    return { typeName: 'Неизвестно', sections: {} };
+  }
+};
 
 onMounted(() => {
   fetchProduct(route.params.category as string, route.params.id as string)
@@ -292,25 +463,80 @@ watch(
     </div>
 
 
+
+
     <div v-else-if="configuration && configuration.length" class="product-page-container">
       <h1 class="h1 product-title">{{ configuration[0].name_configuration }}</h1>
 
-      <div class="product-page" v-for="component in configuration" :key="component.id_component">
+      <div class="product-page">
+        <ProductImageViewer
+            ref="imageViewerRef"
+            :imageName="configuration[0].name_configuration"
+            :alt="configuration[0].name_configuration"
+            class="product-image"
+        />
+
         <div class="product-details">
-          <h2 class="h2">{{ component.name_component }}</h2>
-          <ul>
-            <li v-for="(value, key) in JSON.parse(component.specs || '{}')" :key="key">
-              <span class="field-label">{{ formatLabel(key) }}:</span> {{ value }}
+          <ul class="mb10">
+            <li v-for="component in configuration" :key="component.id_component">
+              <span class="field-label ">{{ formatLabel(component.name_components)}}</span>
             </li>
           </ul>
+
+          <button @click="scrollToSpecs" class="button-text field-label button-specs">
+            Все характеристики ↓
+          </button>
+        </div>
+
+        <div class="product-price">
+          <div class="price">{{ formatPrice(configuration[0].price_configuration) }} ₽</div>
+          <AddToCartButton
+              :image="imageViewerRef?.imageSrc"
+              :id="configuration[0].id_configuration"
+              :name="configuration[0].name_configuration"
+              :price="configuration[0].price_configuration"
+              :category="configuration[0].category"
+          />
+        </div>
+
+      </div>
+
+
+      <!-- Характеристики внизу -->
+      <div ref="allSpecsSection" class="all-specs-section">
+        <div v-for="component in configuration" :key="component.id_component">
+          <div class="component-details">
+            <!-- Получаем название комплектующего -->
+            <h3 class="component-spec-title h3">
+              {{
+                Object.keys(
+                    specTypeMap[component.type_product] || { 'Неизвестно': {} }
+                )[0]
+              }}
+            </h3>
+            <div
+                v-for="(fields, category) in (() => {
+          // Берём первый (и единственный) ключ — это название типа (например, 'процессор')
+          const typeMap = specTypeMap[component.type_product];
+          if (!typeMap) return {};
+          const [typeName] = Object.keys(typeMap);
+          return typeMap[typeName] || {};
+        })()"
+                :key="category"
+                class="spec-category"
+            >
+              <h4 class="h4 component-spec-title">{{ category }}</h4>
+              <ul class="component-spec-list">
+                <li v-for="field in fields" :key="field" class="spec-row">
+                  <span class="field-label">{{ formatLabel(field) }}:</span>
+                  <span class="field-value">{{ JSON.parse(component.specs || '{}')[field] || '—' }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="product-price">
-        <div class="price">
-          Общая цена: {{ formatPrice(configuration[0].price_configuration) }} ₽
-        </div>
-      </div>
     </div>
 
 
