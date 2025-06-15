@@ -9,6 +9,7 @@ export interface CartItem {
     quantity: number
     category: string
     image: string // путь к изображению
+    type: 'component' | 'configuration'
 }
 
 // Определяем стор корзины с помощью setup-стиля

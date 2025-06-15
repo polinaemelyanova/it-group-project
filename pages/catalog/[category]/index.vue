@@ -764,6 +764,7 @@ watch(() => route.params.category, (newCategory) => {
                   :price="product.price"
                   :image="getImageUrl(product.name_components)"
                   :category="product.category"
+                  :type="product.category !== 'pc' ? 'component' : 'configuration'"
               />
             </div>
           </div>

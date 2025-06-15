@@ -439,6 +439,7 @@ watch(
               :price="product.price"
               :image="imageViewerRef?.imageSrc"
               :category="product.category"
+              :type="'component'"
           />
         </div>
       </div>
@@ -496,6 +497,7 @@ watch(
               :name="configuration[0].name_configuration"
               :price="configuration[0].price_configuration"
               :category="configuration[0].category"
+              :type="'configuration'"
           />
         </div>
 

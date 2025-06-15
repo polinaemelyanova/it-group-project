@@ -28,6 +28,7 @@ function handleClick() {
       price: props.price,
       quantity: 1,
       category: props.category,
+      type: props.category !== 'pc'? 'component' : 'configuration',
       image: props.image || '/images/components/placeholder.png',
     })
   } else {

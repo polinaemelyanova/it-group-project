@@ -249,10 +249,47 @@ function hideCitySuggestionsWithDelay() {
   window.setTimeout(() => (showCitySuggestions.value = false), 200)
 }
 
-function submitOrder() {
-  alert('Спасибо за заказ!')
-  cart.clear()
-  router.push('/')
+async function submitOrder() {
+  const payload = {
+    customer_info: {
+      name: name.value.trim(),
+      last_name: '', // Добавь, если введёшь отдельные поля
+      patronymic: '', // Добавь, если введёшь отдельные поля
+      phone: phone.value.trim(),
+      email: email.value.trim()
+    },
+    orders: {
+      city: city.value.trim(),
+      street: address.value.split(',')[1]?.trim() || '',
+      house: address.value.split(',')[2]?.trim() || '',
+      flat: address.value.split(',')[3]?.trim() || '',
+      delivery_method: deliveryMethod.value,
+      payment_method: paymentMethod.value,
+      cost: cart.totalPrice,
+      comment: comment.value.trim()
+    },
+    order_items: cart.items.map(item => ({
+      id_component: item.type === 'component' ? item.id : null,
+      id_configuration: item.type === 'configuration' ? item.id : null
+    }))
+  }
+
+  try {
+    const res = await fetch('http://my-api/submit_order.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    if (!res.ok) throw new Error('Ошибка при оформлении')
+
+    alert('Спасибо за заказ!')
+    cart.clear()
+    router.push('/')
+  } catch (e) {
+    console.error(e)
+    alert('Ошибка при отправке заказа. Попробуйте позже.')
+  }
 }
 
 onMounted(() => {
