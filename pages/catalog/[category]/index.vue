@@ -733,6 +733,7 @@ watch(() => route.params.category, (newCategory) => {
                   class="images-component"
                   :disableModal="true"
                   ref="imageViewerRef"
+                  :category="product.category"
               />
             </NuxtLink>
 

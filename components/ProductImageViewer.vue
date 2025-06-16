@@ -4,7 +4,22 @@ import { ref, onMounted } from 'vue'
 interface Props {
   imageName: string
   alt?: string
-  disableModal?: boolean // <--- новый проп
+  category?: string
+  disableModal?: boolean
+}
+
+const placeholders: Record<string, string> = {
+  cpu: '/images/components/placeholder-cpu.png',
+  gpu: '/images/components/placeholder-gpu.png',
+  ram: '/images/components/placeholder-ram.png',
+  ssd: '/images/components/placeholder-ssd.png',
+  case: '/images/components/placeholder-case.png',
+  cooling: '/images/components/placeholder-cooling.png',
+  hdd: '/images/components/placeholder-hdd.png',
+  psu: '/images/components/placeholder-psu.png',
+  motherboard: '/images/components/placeholder-motherboard.png',
+  pc: '/images/components/placeholder-pc.png',
+  default: '/images/components/placeholder.png'
 }
 
 const props = defineProps<Props>()
@@ -34,8 +49,9 @@ const findValidImage = async () => {
       return
     }
   }
-  imageSrc.value = '/images/components/placeholder.png' // дефолт
+  imageSrc.value = placeholders[props.category || ''] || placeholders.default
 }
+
 
 onMounted(() => {
   findValidImage()

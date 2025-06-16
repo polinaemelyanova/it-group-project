@@ -2,9 +2,16 @@
   <div class="container checkout-container">
     <h1 class="h1">Оформление заказа</h1>
 
-    <div v-if="cart.items.length === 0">
-      <p>Ваша корзина пуста. <NuxtLink to="/catalog" class="link">Перейти в каталог</NuxtLink></p>
+    <div v-if="cart.items.length === 0" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+      <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h1 class="h2">Спасибо за ваш заказ</h1>
+        <p style="text-align: center;">Ваш заказ отправлен на обработку, в ближайшее время с Вами свяжется наш <br> оператор, для уточнения деталей заказа.</p>
+        <img  src="../public/images/package.png" alt="" style="background: none; width: 200px; margin-block: 50px;">
+        <button @click="goHome" class="button">Продолждить покупки</button>
+      </div>
     </div>
+
+
 
     <div v-else class="order-container">
       <form @submit.prevent="submitOrder" class="checkout-form">
@@ -77,7 +84,7 @@
 
           <label>
             Комментарий к заказу
-            <textarea class="order__comment" v-model="comment" placeholder="Ваш комментарий" required></textarea>
+            <textarea class="order__comment" v-model="comment" placeholder="Ваш комментарий"></textarea>
           </label>
         </div>
 
@@ -191,6 +198,10 @@ async function fetchSuggestions(query: string) {
   suggestions.value = data.suggestions.map((s: any) => s.value)
 }
 
+function goHome() {
+  router.push('/')
+}
+
 
 async function fetchCitySuggestions(query: string) {
   if (query.length < 3) {
@@ -250,15 +261,22 @@ function hideCitySuggestionsWithDelay() {
 }
 
 async function submitOrder() {
+  const fio = name.value.trim().split(' ');
+
+// Обработка разных вариантов длины массива (на всякий случай)
+  const lastName = fio[0] || '';
+  const firstName = fio[1] || '';
+  const patronymic = fio[2] || '';
+
   const payload = {
-    customer_info: {
-      name: name.value.trim(),
-      last_name: '', // Добавь, если введёшь отдельные поля
-      patronymic: '', // Добавь, если введёшь отдельные поля
+    customer: {
+      name: firstName,
+      last_name: lastName,
+      patronymic: patronymic,
       phone: phone.value.trim(),
       email: email.value.trim()
     },
-    orders: {
+    order: {
       city: city.value.trim(),
       street: address.value.split(',')[1]?.trim() || '',
       house: address.value.split(',')[2]?.trim() || '',
@@ -268,7 +286,7 @@ async function submitOrder() {
       cost: cart.totalPrice,
       comment: comment.value.trim()
     },
-    order_items: cart.items.map(item => ({
+    items: cart.items.map(item => ({
       id_component: item.type === 'component' ? item.id : null,
       id_configuration: item.type === 'configuration' ? item.id : null
     }))
@@ -283,9 +301,8 @@ async function submitOrder() {
 
     if (!res.ok) throw new Error('Ошибка при оформлении')
 
-    alert('Спасибо за заказ!')
     cart.clear()
-    router.push('/')
+    // router.push('/')
   } catch (e) {
     console.error(e)
     alert('Ошибка при отправке заказа. Попробуйте позже.')

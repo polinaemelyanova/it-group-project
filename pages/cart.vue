@@ -30,15 +30,25 @@ function decreaseQuantity(id: number) {
 function goToCheckout() {
   router.push('/checkout')
 }
+
+function goHome() {
+  router.push('/')
+}
 </script>
 
 <template>
   <div class="container">
-    <h1>Корзина</h1>
-    <button @click="clearCart" class="button-text cart__button-clear">Очистить корзину</button>
+    <h1 class="h1">Корзина</h1>
+    <button v-if="cart.items.length > 0" @click="clearCart" class="button-text cart__button-clear">Очистить корзину</button>
 
-    <div v-if="cart.items.length === 0">
-      <p>Корзина пуста.</p>
+
+    <div style="display: flex; justify-content: center; flex-direction: column; align-items: center;" v-if="cart.items.length === 0">
+      <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h1 class="h2">Ваша корзина пуста</h1>
+        <p>Чтобы оформить заказ, добавьте товары в корзину.</p>
+        <img  src="../public/images/cart-background.png" alt="" style="background: none; width: 200px; margin-block: 50px;">
+        <button @click="goHome" class="button">Вернуться на главную</button>
+      </div>
     </div>
 
     <div v-else class="cart-container">

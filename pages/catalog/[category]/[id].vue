@@ -417,6 +417,7 @@ watch(
             :imageName="product.name_components"
             :alt="product.name_components"
             class="product-image"
+            :category="product.category"
         />
 
         <div class="product-details">
@@ -475,6 +476,7 @@ watch(
             :imageName="configuration[0].name_configuration"
             :alt="configuration[0].name_configuration"
             class="product-image"
+            :category="configuration[0].category"
         />
 
         <div class="product-details">
