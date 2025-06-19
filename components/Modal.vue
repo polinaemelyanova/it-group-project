@@ -31,7 +31,8 @@ interface Specs {
 }
 
 const props = defineProps({
-  category: String
+  category: String,
+  selectedComponents: Object
 })
 
 const emit = defineEmits(['close', 'add-component'])
@@ -123,7 +124,7 @@ const fieldOrderByCategory: Record<string, string[]> = {
   cpu: ['производитель', 'модель', 'сокет', 'базовая_частота', 'количество_ядер', 'tdp'],
   gpu: ['производитель', 'модель', 'объем_памяти', 'тип_памяти', 'частота_ядра'],
   ram: ['производитель', 'модель', 'объем', 'тип', 'частота'],
-  motherboard: ['производитель', 'сокет', 'чипсет', 'форм_фактор'],
+  motherboard: ['производитель', 'сокет', 'чипсет', 'форм-фактор'],
   hdd: ['производитель', 'объем', 'форм-фактор', 'интерфейс'],
   ssd: ['производитель', 'объем', 'тип', 'интерфейс'],
   psu: ['производитель', 'мощность', 'сертификат'],
@@ -192,6 +193,152 @@ const displayNames: Record<string, string> = {
   'cooling.тип': 'Тип охлаждения'
 }
 
+
+const caseSupportedFormFactors: Record<string, string[]> = {
+  "Full-Tower": ["E-ATX", "ATX", "Micro-ATX", "Mini-ITX"],
+  "Mid-Tower": ["ATX", "Micro-ATX", "Mini-ITX"],
+  "Mini-Tower": ["Micro-ATX", "Mini-ITX"],
+  "Micro-ATX": ["Micro-ATX", "Mini-ITX"],
+  "Mini-ITX": ["Mini-ITX"],
+}
+
+
+function filterCompatibleProducts(products: Product[], selectedComponents: Record<string, any>, currentCategory: string): Product[] {
+  // CPU: показать только те, что подходят к выбранной материнке (по сокету)
+  if (currentCategory === 'cpu' && selectedComponents['motherboard']) {
+    const mbSpecs = safeJsonParse(selectedComponents['motherboard'].specs || '{}');
+    const mbSocket = mbSpecs['сокет'];
+    return products.filter(product => {
+      const cpuSpecs = safeJsonParse(product.specs);
+      return cpuSpecs['сокет'] === mbSocket;
+    });
+  }
+
+  // Motherboard: показать только те, что подходят к выбранному процессору (по сокету)
+  if (currentCategory === 'motherboard' && selectedComponents['cpu']) {
+    const cpuSpecs = safeJsonParse(selectedComponents['cpu'].specs || '{}');
+    const cpuSocket = cpuSpecs['сокет'];
+    return products.filter(product => {
+      const mbSpecs = safeJsonParse(product.specs);
+      return mbSpecs['сокет'] === cpuSocket;
+    });
+  }
+
+  // RAM: фильтрация по типу памяти материнской платы
+  if (currentCategory === 'ram' && selectedComponents['motherboard']) {
+    const mbSpecs = safeJsonParse(selectedComponents['motherboard'].specs || '{}');
+    const ramType = mbSpecs['тип_памяти'];
+    return products.filter(product => {
+      const ramSpecs = safeJsonParse(product.specs);
+      return ramSpecs['тип'] === ramType;
+    });
+  }
+
+  // Motherboard: фильтрация по типу RAM, если уже выбрана память
+  if (currentCategory === 'motherboard' && selectedComponents['ram']) {
+    const ramSpecs = safeJsonParse(selectedComponents['ram'].specs || '{}');
+    const ramType = ramSpecs['тип'];
+    return products.filter(product => {
+      const mbSpecs = safeJsonParse(product.specs);
+      return mbSpecs['тип_памяти'] === ramType;
+    });
+  }
+
+  // GPU: фильтрация по PCIe интерфейсу материнской платы
+  if (currentCategory === 'gpu' && selectedComponents['motherboard']) {
+    const mbSpecs = safeJsonParse(selectedComponents['motherboard'].specs || '{}');
+    const mbPcieSlots = mbSpecs['слоты_PCIe'] || [];
+    return products.filter(product => {
+      const gpuSpecs = safeJsonParse(product.specs);
+      // например, "PCI Express 4.0" должен быть среди строк в mbPcieSlots
+      return mbPcieSlots.some((slot: string) => slot.includes(gpuSpecs['интерфейс']));
+    });
+  }
+
+  // PSU: фильтрация по требуемой мощности видеокарты или проц
+  if (currentCategory === 'psu' && selectedComponents['gpu']) {
+    const gpuSpecs = safeJsonParse(selectedComponents['gpu'].specs || '{}');
+    let required = gpuSpecs['рекомендуемый_блок_питания'];
+    if (typeof required === 'string') {
+      required = parseInt(required);
+    }
+    return products.filter(product => {
+      const psuSpecs = safeJsonParse(product.specs);
+      const psuWatts = parseInt(psuSpecs['мощность']);
+      return !isNaN(psuWatts) && !isNaN(required) && psuWatts >= required;
+    });
+  }
+
+  // SSD: фильтрация по наличию M.2 разъёмов на материнке
+  if (currentCategory === 'ssd' && selectedComponents['motherboard']) {
+    const mbSpecs = safeJsonParse(selectedComponents['motherboard'].specs || '{}');
+    const mbM2 = mbSpecs['разъемы_M2'] || 0;
+    return products.filter(product => {
+      const ssdSpecs = safeJsonParse(product.specs);
+      // если SSD форм-фактор M.2, то должны быть свободные M.2
+      if (ssdSpecs['форм-фактор'] && ssdSpecs['форм-фактор'].toLowerCase().includes('m.2')) {
+        return mbM2 > 0;
+      }
+      return true;
+    });
+  }
+
+  // Корпус: фильтрация по форм-фактору материнской платы
+  if (currentCategory === 'case' && selectedComponents['motherboard']) {
+    const mbSpecs = safeJsonParse(selectedComponents['motherboard'].specs || '{}');
+    const mbForm = mbSpecs['форм-фактор'];
+    return products.filter(product => {
+      const caseSpecs = safeJsonParse(product.specs);
+      const caseType = caseSpecs['форм-фактор'];
+      return caseSupportedFormFactors[caseType]?.includes(mbForm);
+    });
+  }
+
+  // Корпус: длина видеокарты
+  if (currentCategory === 'case' && selectedComponents['gpu']) {
+    products = products.filter(product => {
+      const caseSpecs = safeJsonParse(product.specs);
+      const gpuSpecs = safeJsonParse(selectedComponents['gpu'].specs || '{}');
+
+      // Длина видеокарты
+      const gpuLengthRaw = gpuSpecs['длина'] || '';
+      const gpuLength = typeof gpuLengthRaw === 'string'
+          ? parseInt(gpuLengthRaw.replace(/[^\d]/g, ''))
+          : Number(gpuLengthRaw);
+
+      // Первая длина корпуса из "размеры"
+      let caseLength = 0;
+      if (caseSpecs['размеры']) {
+        const match = String(caseSpecs['размеры']).match(/^(\d+)/);
+        if (match) caseLength = parseInt(match[1]);
+      }
+
+      if (!caseLength || isNaN(caseLength) || !gpuLength || isNaN(gpuLength)) return true;
+      return gpuLength <= caseLength;
+    });
+  }
+
+
+  // Кулер: фильтрация по сокету CPU/материнской платы
+  if (currentCategory === 'cooling' && selectedComponents['cpu']) {
+    const cpuSpecs = safeJsonParse(selectedComponents['cpu'].specs || '{}');
+    const cpuSocket = cpuSpecs['сокет'];
+    return products.filter(product => {
+      const coolingSpecs = safeJsonParse(product.specs);
+      // у кулеров иногда массив сокетов!
+      if (Array.isArray(coolingSpecs['сокет'])) {
+        return coolingSpecs['сокет'].includes(cpuSocket);
+      }
+      return coolingSpecs['сокет'] === cpuSocket;
+    });
+  }
+
+
+  return products;
+}
+
+
+
 const availableManufacturers = computed(() => {
   const currentCategory = props.category as string
   const manufacturers = new Set<string>()
@@ -212,7 +359,8 @@ const applyFilters = () => {
   const currentCategory = props.category as string
   const filters = filterConfigByCategory.value[currentCategory] ?? []
 
-  filteredProducts.value = products.value.filter(product => {
+  // Сначала применяем пользовательские фильтры (цена, производитель и т.д.)
+  let candidates = products.value.filter(product => {
     const specs = safeJsonParse(product.specs)
     const price = product.price
     const manufacturer = specs?.производитель || ''
@@ -233,6 +381,10 @@ const applyFilters = () => {
     return priceInRange && manufacturerMatch && additionalFiltersMatch
   })
 
+  // Затем фильтрация по совместимости
+  candidates = filterCompatibleProducts(candidates, props.selectedComponents || {}, currentCategory)
+
+  filteredProducts.value = candidates
   applySort(selectedSort.value)
 }
 

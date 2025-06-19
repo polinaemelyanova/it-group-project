@@ -71,6 +71,7 @@
       <Modal
           v-if="isModalOpen"
           :category="selectedCategory"
+          :selectedComponents="configuratorComponents"
           @close="closeModal"
           @add-component="onAddComponent"
       />
@@ -134,6 +135,7 @@ const totalPrice = computed(() => {
   return Object.values(configuratorComponents.value)
       .reduce((sum, component) => sum + (Number((component as ConfiguratorComponent)?.price) || 0), 0);
 });
+
 
 const buildName = computed(() => {
   let cpu = configuratorComponents.value['cpu']?.name_components || '';
