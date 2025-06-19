@@ -69,6 +69,10 @@
   width: fluid(180, 160);
   max-width: none;
 
+  img {
+    max-height: rem(190);
+  }
+
 
   @include laptop {
     width: fluid(160, 150);

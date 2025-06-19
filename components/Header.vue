@@ -8,7 +8,7 @@
               <a href="/" class="header__menu-link ">О магазине</a>
             </li>
             <li class="header__menu-item">
-              <a href="/" class="header__menu-link">Конфигуратор ПК</a>
+              <NuxtLink to="/configurator" class="header__menu-link">Конфигуратор ПК</NuxtLink>
             </li>
             <li class="header__menu-item">
               <a href="/" class="header__menu-link">Оплата</a>

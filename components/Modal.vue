@@ -16,12 +16,6 @@ interface Product {
   category: string
 }
 
-interface Component {
-  id_components: number
-  name_components: string
-  name_type: string
-  specs: string
-}
 
 interface FilterConfig {
   label: string
@@ -40,11 +34,15 @@ const props = defineProps({
   category: String
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'add-component'])
 
 function closeModal() {
   emit('close')
   document.body.style.overflow = ''
+}
+
+function addToConfigurator(product: Product) {
+  emit('add-component', product)
 }
 
 // Улучшенная функция для парсинга JSON
@@ -195,7 +193,7 @@ const displayNames: Record<string, string> = {
 }
 
 const availableManufacturers = computed(() => {
-  const currentCategory = route.params.category as string
+  const currentCategory = props.category as string
   const manufacturers = new Set<string>()
 
   products.value.forEach(product => {
@@ -211,7 +209,7 @@ const toggleFilterCollapse = (field: string) => {
 }
 
 const applyFilters = () => {
-  const currentCategory = route.params.category as string
+  const currentCategory = props.category as string
   const filters = filterConfigByCategory.value[currentCategory] ?? []
 
   filteredProducts.value = products.value.filter(product => {
@@ -242,7 +240,7 @@ const resetFilters = () => {
   priceRange.value = [minPrice.value, maxPrice.value]
   selectedManufacturers.value = []
 
-  const currentCategory = route.params.category as string
+  const currentCategory = props.category as string
   const filters = filterConfigByCategory.value[currentCategory] ?? []
 
   for (const filter of filters) {
@@ -268,12 +266,12 @@ const getSpecValue = (specs: string, field: string): string => {
 }
 
 const readableCategory = computed(() => {
-  const raw = route.params.category as string
+  const raw = props.category as string
   return customCategoryTitles[raw] || raw
 })
 
 const fieldOrder = computed(() => {
-  const raw = route.params.category as string
+  const raw = props.category as string
   return fieldOrderByCategory[raw] ?? []
 })
 
@@ -362,13 +360,11 @@ function getImageUrl(name: string): string {
 }
 
 onMounted(() => {
-  fetchProducts(route.params.category as string)
+  if (props.category) fetchProducts(props.category as string)
 })
 
-watch(() => route.params.category, (newCategory) => {
-  if (newCategory) {
-    fetchProducts(newCategory as string)
-  }
+watch(() => props.category, (newCategory) => {
+  if (newCategory) fetchProducts(newCategory as string)
 })
 </script>
 
@@ -411,7 +407,7 @@ watch(() => route.params.category, (newCategory) => {
               class="custom-slider"
           />
 
-          <div v-if="route.params.category != 'pc'"
+          <div
                class="filter-header mb15"
                @click="toggleFilterCollapse('производитель')"
           >
@@ -432,7 +428,7 @@ watch(() => route.params.category, (newCategory) => {
           </div>
 
           <transition name="collapse">
-            <div v-if="route.params.category != 'pc'"
+            <div
                  v-show="!collapsedFilters['производитель']"
                  class="checkboxes mb30 scrollable-filter collapse-content"
             >
@@ -453,7 +449,7 @@ watch(() => route.params.category, (newCategory) => {
 
           <!-- Дополнительные фильтры -->
           <div
-              v-for="filter in filterConfigByCategory[route.params.category as string] ?? []"
+              v-for="filter in filterConfigByCategory[props.category as string] ?? []"
               :key="filter.field"
               class="mb15"
           >
@@ -545,7 +541,6 @@ watch(() => route.params.category, (newCategory) => {
               :key="product.id_components"
               class="product"
           >
-            <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
               <ProductImageViewer
                   :imageName="product.name_components"
                   :alt="product.name_components"
@@ -554,12 +549,9 @@ watch(() => route.params.category, (newCategory) => {
                   ref="imageViewerRef"
                   :category="product.category"
               />
-            </NuxtLink>
 
             <div class="product-info">
-              <NuxtLink :to="`/catalog/${route.params.category}/${product.id_components}`">
                 <div class="product-name">{{ product.name_components }}</div>
-              </NuxtLink>
 
               <div v-if="product.specs">
                 <ul class="list-components">
@@ -576,14 +568,7 @@ watch(() => route.params.category, (newCategory) => {
 
             <div class="price-button">
               <div class="price">{{ formatPrice(product.price) }} ₽</div>
-              <AddToCartButton
-                  :id="product.id_components"
-                  :name="product.name_components"
-                  :price="product.price"
-                  :image="getImageUrl(product.name_components)"
-                  :category="product.category"
-                  :type="product.category !== 'pc' ? 'component' : 'configuration'"
-              />
+              <button class="add-btn button" @click="addToConfigurator(product)">Добавить</button>
             </div>
           </div>
         </div>
@@ -662,5 +647,20 @@ watch(() => route.params.category, (newCategory) => {
   flex-grow: 1;
 }
 
-/* Остальные стили остаются без изменений */
+.images-component {
+  width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+:deep(.images-component img) {
+  width: 100%;
+  height: 100%;
+  max-width: 150px;
+  max-height: 180px;
+  object-fit: contain;
+  display: block;
+}
+
+
 </style>

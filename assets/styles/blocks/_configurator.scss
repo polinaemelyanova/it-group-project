@@ -1,0 +1,188 @@
+@use "../helpers" as *;
+
+.container {
+  position: relative;
+}
+
+.configurator-container {
+  display: flex;
+  gap: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.components-list {
+  flex: 1;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.required-note {
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.component-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+
+  height: rem(100);
+}
+
+.component-icon img {
+  width: 40px;
+}
+
+.component-info {
+  flex: 1;
+  margin-left: rem(20);
+  margin-right: rem(30);
+
+  min-width: rem(200);
+
+}
+
+.component-name {
+  font-weight: bold;
+}
+
+.component-count {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+
+.summary {
+  width: 300px;
+  text-align: center;
+}
+
+.progress-ring {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.total-cost {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+}
+
+.cost {
+  font-weight: bold;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.build-button {
+  color: var(--color-light);
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.build-button:hover {
+  background-color: #218838;
+}
+
+.build-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.configurator__component-title-price {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.selected-component {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: rem(60);
+
+  &__buttons {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    gap: rem(10);
+  }
+
+}
+
+.selected-price {
+  min-width: rem(80);
+}
+
+.icon-button {
+  width: rem(44);
+  height: rem(44);
+  padding: 0;
+  border: 1px solid var(--color-purple);
+  background-color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+
+  img {
+    width: 18px;
+    height: 18px;
+    filter: invert(40%) sepia(5%) saturate(5748%) hue-rotate(217deg) brightness(97%) contrast(85%);
+    transition: filter 0.2s;
+  }
+
+  &:hover {
+    background-color: var(--color-purple);
+
+    img {
+      filter: brightness(0) invert(1);
+    }
+  }
+}
+
+.add-button {
+  color: var(--color-purple);
+  background-color: var(--color-light);
+  border: 1px solid var(--color-purple);
+
+  &:hover {
+    background-color: var(--color-purple);
+    color: var(--color-light);
+  }
+}
+
+.delete-button {
+  border: 1px solid #fe3806;
+  &:hover {
+    background-color: #fe3806;
+  }
+
+  img {
+    filter: invert(59%) sepia(92%) saturate(6852%) hue-rotate(356deg) brightness(99%) contrast(103%)
+  }
+}
+
+
