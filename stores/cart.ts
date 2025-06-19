@@ -8,8 +8,10 @@ export interface CartItem {
     price: number
     quantity: number
     category: string
-    image: string // путь к изображению
+    image?: string // для обычных комплектующих
     type: 'component' | 'configuration'
+    type_configuration?: number
+    caseName?: string // для сборок ПК
 }
 
 // Определяем стор корзины с помощью setup-стиля

@@ -211,12 +211,9 @@ async function fetchCategoryCount(category: string) {
   }
 }
 
-function addBuildToCart(configId: number, buildName: string, price: number, components: any[]) {
-  // Используем картинку корпуса, если есть
-  let caseImage = '/images/components/placeholder.png';
-  if (configuratorComponents.value['case'] && configuratorComponents.value['case'].image) {
-    caseImage = configuratorComponents.value['case'].image;
-  }
+function addBuildToCart(configId: number, buildName: string, price: number, components: any[], type_configuration: number) {
+  const caseComponent = configuratorComponents.value['case'];
+  const caseName = caseComponent?.name_components || '';
   cart.addItem({
     id: configId,
     name: buildName,
@@ -224,7 +221,8 @@ function addBuildToCart(configId: number, buildName: string, price: number, comp
     quantity: 1,
     category: 'pc',
     type: 'configuration',
-    image: caseImage,
+    type_configuration: type_configuration,
+    caseName,
   })
   router.push('/cart')
 }
@@ -237,26 +235,13 @@ onMounted(async () => {
   categoryCounts.value = counts;
 });
 
-const autoTypeConfiguration = computed(() => {
-  const hasGPU = !!configuratorComponents.value['gpu'];
-  const hasSSD = !!configuratorComponents.value['ssd'];
-  const price = totalPrice.value;
-
-  if (hasGPU && hasSSD && price > 45000 && price < 60000) {
-    return 2;
-  }
-  if (hasGPU && hasSSD && price > 60001) {
-    return 3;
-  }
-  return 1;
-});
 
 // --- СОЗДАНИЕ СБОРКИ, ОТПРАВКА НА БЭКЕНД, ДОБАВЛЕНИЕ В КОРЗИНУ И ПЕРЕНОС ---
 async function onBuild() {
   if (!hasRequiredComponents.value) return;
   const buildData = {
     name_configuration: buildName.value || 'Компьютер',
-    type_configuration: autoTypeConfiguration.value,
+    type_configuration: 0,
     price_configuration: totalPrice.value,
     components: Object.values(configuratorComponents.value).map((c: any) => ({
       id_component: c.id_components,
@@ -281,7 +266,8 @@ async function onBuild() {
           result.id_configuration,
           buildName.value || 'Компьютер',
           totalPrice.value,
-          buildData.components
+          buildData.components,
+          buildData.type_configuration
       );
     } else {
       alert('Ошибка: ' + (result.error || 'Неизвестная ошибка'));

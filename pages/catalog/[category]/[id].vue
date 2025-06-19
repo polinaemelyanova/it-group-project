@@ -472,6 +472,15 @@ watch(
 
       <div class="product-page">
         <ProductImageViewer
+            v-if="configuration[0].type_configuration === '0' || configuration[0].type_configuration === 0"
+            ref="imageViewerRef"
+            :imageName="route.query.caseName"
+            :alt="configuration[0].name_configuration"
+            class="product-image"
+            :category="configuration[0].category"
+        />
+        <ProductImageViewer
+            v-else
             ref="imageViewerRef"
             :imageName="configuration[0].name_configuration"
             :alt="configuration[0].name_configuration"

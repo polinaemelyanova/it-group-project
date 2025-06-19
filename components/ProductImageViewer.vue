@@ -6,6 +6,7 @@ interface Props {
   alt?: string
   category?: string
   disableModal?: boolean
+  className?: string
 }
 
 const placeholders: Record<string, string> = {
@@ -82,6 +83,7 @@ defineExpose({
         :alt="props.alt || 'Product Image'"
         @click="openModal"
         style="cursor: pointer;"
+        :class="props.className"
     />
 
     <transition name="fade">
