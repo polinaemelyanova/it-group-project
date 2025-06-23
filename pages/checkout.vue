@@ -17,7 +17,12 @@
       <form @submit.prevent="submitOrder" class="checkout-form">
         <div class="order__fields">
 
-          <div class="city-autocomplete">
+          <label>
+            Способ доставки
+            <DeliveryMethod v-model="deliveryMethod" :options="deliveryOptions" />
+          </label>
+
+          <div class="city-autocomplete" v-if="pickupSelect">
             <label>
               Город доставки
               <input
@@ -39,11 +44,6 @@
               </li>
             </ul>
           </div>
-
-          <label>
-            Способ доставки
-            <DeliveryMethod v-model="deliveryMethod" :options="deliveryOptions" />
-          </label>
 
           <div class="city-autocomplete" v-if="pickupSelect">
             <label>
@@ -137,40 +137,40 @@ const showSuggestions = ref(false)
 const citySuggestions = ref<string[]>([])
 const showCitySuggestions = ref(false)
 
-const deliveryMethod = ref('courier')
-const paymentMethod = ref('card')
+const deliveryMethod = ref('курьер')
+const paymentMethod = ref('при получении')
 
 const deliveryOptions = [
   {
-    value: 'courier',
+    value: 'курьер',
     title: 'Доставка до двери (ТК)',
     description: 'от 380 ₽ / до 4 дней'
   },
   {
-    value: 'pickup',
+    value: 'самовывоз',
     title: 'Самовывоз',
     description: 'г. Нижний Новгород, Дзержинского ул., д. 7, 2 этаж, пав 157'
   }
 ]
 
 const paymentOptions = [
-  { value: 'card', title: 'Картой онлайн', description: 'После оформления заказа вы перейдете на платежную страницу для завершения оплаты' },
-  { value: 'cash', title: 'Картой или наличными', description: 'Оплата при получении курьеру и самовывозе из пункта выдачи.' },
-  { value: 'bank', title: 'Безналичный расчет', description: 'Для юр. лиц и ИП' }
+  { value: 'онлайн', title: 'Картой онлайн', description: 'После оформления заказа вы перейдете на платежную страницу для завершения оплаты' },
+  { value: 'при получении', title: 'Картой или наличными', description: 'Оплата при получении курьеру и самовывозе из пункта выдачи.' },
+  { value: 'банк', title: 'Безналичный расчет', description: 'Для юр. лиц и ИП' }
 ]
 
 const selectedDeliveryMethodLabel = computed(() => {
   switch (deliveryMethod.value) {
-    case 'pickup':
+    case 'самовывоз':
       return 'Самовывоз'
-    case 'courier':
+    case 'курьер':
       return 'Доставка транспортной компанией'
     default:
       return 'Не выбран'
   }
 })
 
-const pickupSelect = computed(() => deliveryMethod.value === 'courier')
+const pickupSelect = computed(() => deliveryMethod.value === 'курьер')
 
 async function fetchSuggestions(query: string) {
   if (query.length < 3 || !city.value.trim()) {
@@ -262,8 +262,6 @@ function hideCitySuggestionsWithDelay() {
 
 async function submitOrder() {
   const fio = name.value.trim().split(' ');
-
-// Обработка разных вариантов длины массива (на всякий случай)
   const lastName = fio[0] || '';
   const firstName = fio[1] || '';
   const patronymic = fio[2] || '';
@@ -284,11 +282,13 @@ async function submitOrder() {
       delivery_method: deliveryMethod.value,
       payment_method: paymentMethod.value,
       cost: cart.totalPrice,
-      comment: comment.value.trim()
+      comment: comment.value.trim(),
+      status_order: 1,
     },
     items: cart.items.map(item => ({
       id_component: item.type === 'component' ? item.id : null,
-      id_configuration: item.type === 'configuration' ? item.id : null
+      id_configuration: item.type === 'configuration' ? item.id : null,
+      quantity: item.quantity // Добавляем количество
     }))
   }
 
@@ -297,15 +297,17 @@ async function submitOrder() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    })
+    });
 
-    if (!res.ok) throw new Error('Ошибка при оформлении')
+    if (!res.ok) throw new Error('Ошибка при оформлении');
 
-    cart.clear()
-    // router.push('/')
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Неизвестная ошибка');
+
+    cart.clear();
   } catch (e) {
-    console.error(e)
-    alert('Ошибка при отправке заказа. Попробуйте позже.')
+    console.error(e);
+    alert('Ошибка при отправке заказа: ' + e.message);
   }
 }
 

@@ -26,7 +26,7 @@
                   {{ configuratorComponents[component.category].name_components }}
                 </span>
                 <span class="selected-price">
-                  {{ formatPrice(configuratorComponents[component.category].price) }} ₽
+                  <b>{{ formatPrice(configuratorComponents[component.category].price) }} ₽</b>
                 </span>
                 <span class="selected-component__buttons">
                   <button class="icon-button" @click="openModal(component.category)">
@@ -249,7 +249,6 @@ async function onBuild() {
       id_component: c.id_components,
       quantity: 1
     })),
-    specss: {}
   };
   const missingId = buildData.components.some((c: any) => !c.id_component);
   if (missingId) {

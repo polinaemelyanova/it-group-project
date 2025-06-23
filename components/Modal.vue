@@ -247,11 +247,28 @@ function filterCompatibleProducts(products: Product[], selectedComponents: Recor
   // GPU: фильтрация по PCIe интерфейсу материнской платы
   if (currentCategory === 'gpu' && selectedComponents['motherboard']) {
     const mbSpecs = safeJsonParse(selectedComponents['motherboard'].specs || '{}');
-    const mbPcieSlots = mbSpecs['слоты_PCIe'] || [];
+    const mbPcieSlots: string[] = mbSpecs['слоты_PCIe'] || [];
+
+    function normalizePcie(str: string) {
+      return str
+          .toLowerCase()
+          .replace(/express/g, '')   // убираем express
+          .replace(/pcie/g, 'pci')  // приводим pcie к pci
+          .replace(/\s+/g, '')      // убираем пробелы
+          .replace(/-/g, '');       // убираем дефисы
+    }
+
     return products.filter(product => {
       const gpuSpecs = safeJsonParse(product.specs);
-      // например, "PCI Express 4.0" должен быть среди строк в mbPcieSlots
-      return mbPcieSlots.some((slot: string) => slot.includes(gpuSpecs['интерфейс']));
+      const gpuIf = normalizePcie(gpuSpecs['интерфейс'] || '');
+
+      // Для "PCI Express 4.0" получится "pci4.0"
+      // Для "1 x PCIe 4.0 x16" получится "1xpci4.0x16"
+      return mbPcieSlots.some(slotRaw => {
+        const slot = normalizePcie(slotRaw);
+        // Совпадение по "pci4.0" и т.д.
+        return slot.includes(gpuIf);
+      });
     });
   }
 

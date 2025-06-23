@@ -5,13 +5,13 @@
         <nav class="header__menu">
           <ul class="header__menu-list">
             <li class="header__menu-item">
-              <a href="/" class="header__menu-link ">О магазине</a>
+              <NuxtLink to="/payment" class="header__menu-link">О магазине</NuxtLink>
             </li>
             <li class="header__menu-item">
               <NuxtLink to="/configurator" class="header__menu-link">Конфигуратор ПК</NuxtLink>
             </li>
             <li class="header__menu-item">
-              <a href="/" class="header__menu-link">Оплата</a>
+              <NuxtLink to="/payment" class="header__menu-link">Оплата</NuxtLink>
             </li>
             <li class="header__menu-item">
               <a href="/" class="header__menu-link">Доставка</a>
@@ -27,9 +27,8 @@
             <span class="icon__clock icon">Пн-Вс: 10:00 — 20:00</span>
           </div>
           <div class="header__contact">
-            <a class="phone-link" href="tel:+74952330338"><span class="icon__contact icon">8 (495)
-                                233-03-38</span></a>
-            <a class="phone-link" href="tel:+74952330338">8 (495) 233-03-38</a>
+            <a class="phone-link" href="tel:+74951234567"><span class="icon__contact icon">8 (495) 123-45-67</span></a>
+            <a class="phone-link" href="tel:+74957654321">8 (495) 765-43-21</a>
           </div>
         </div>
       </div>

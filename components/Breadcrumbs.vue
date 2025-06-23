@@ -45,7 +45,9 @@ const customTitles: Record<string, string> = {
   'case': 'Корпуса',
   'cooling': 'Системы охлаждения',
   'pc': 'Компьютеры',
-  'configurator': 'Конфигуратор'
+  'configurator': 'Конфигуратор',
+  'about_us': 'О нас',
+  'payment': 'Оплата'
   // Добавьте другие страницы по необходимости
 };
 

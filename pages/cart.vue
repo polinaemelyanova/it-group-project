@@ -67,8 +67,8 @@ function goHome() {
               query: { caseName: item.caseName }
             }">
               <ProductImageViewer
-                  v-if="(item.type === 'configuration') && (item.type_configuration === '0' || item.type_configuration === 0)"
-                  :imageName="item.caseName"
+                  v-if="Number(item.type_configuration) === 0"
+                  :imageName="item.caseName ?? ''"
                   category="case"
                   :alt="item.name"
                   className="cart-image"
@@ -83,7 +83,10 @@ function goHome() {
           </div>
 
           <div class="cart__cell name">
-            <NuxtLink :to="`/catalog/${item.category}/${item.id}`" class="cart-link">
+            <NuxtLink :to="{
+              path: `/catalog/${item.category}/${item.id}`,
+              query: { caseName: item.caseName }
+            }" class="cart-link">
               {{ item.name }}
             </NuxtLink>
           </div>

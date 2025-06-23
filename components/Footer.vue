@@ -7,7 +7,7 @@
             <div class="footer__menu-main-link">Контакты</div>
             <ul class="footer__menu-list">
               <li class="footer__menu-item">
-                <span><a href="tel:+74952330338" class="footer__menu-link">8 (495) 233-03-38</a></span>, <span><a href="tel:+74957991270" class="footer__menu-link"> 8 (495) 799-12-70</a></span>
+                <span><a href="tel:+74951234567" class="footer__menu-link">8 (495) 123-45-67</a></span>, <span><a href="tel:+74957654321" class="footer__menu-link"> 8 (495) 765-43-21</a></span>
               </li>
               <li class="footer__menu-item">
                 <div class="footer__menu-text">Пн-Вс: 10:00 — 20:00</div>
@@ -16,7 +16,7 @@
                 <a href="/" class="footer__menu-link">Адрес магазина</a>
               </li>
               <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">Напить в WHAT'S APP</a>
+                <a href="/" class="footer__menu-link">Написать в WHAT'S APP</a>
               </li>
             </ul>
           </div>
@@ -27,13 +27,10 @@
                 <a href="/" class="footer__menu-link">Компьютеры</a>
               </li>
               <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">Ноутбуки</a>
+                <NuxtLink to="/configurator" class="footer__menu-link">Персональные ПК</NuxtLink>
               </li>
               <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">Комплектующие</a>
-              </li>
-              <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">Принтеры</a>
+                <NuxtLink to="/catalog" class="footer__menu-link">Комплектующие</NuxtLink>
               </li>
             </ul>
           </div>
@@ -41,13 +38,13 @@
             <div class="footer__menu-main-link">Клиентам</div>
             <ul class="footer__menu-list">
               <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">О магазине</a>
+                <NuxtLink to="/about_us" class="footer__menu-link">О магазине</NuxtLink>
               </li>
               <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">Конфигуратор ПК</a>
+                <NuxtLink to="/configurator" class="footer__menu-link">Конфигуратор ПК</NuxtLink>
               </li>
               <li class="footer__menu-item">
-                <a href="/" class="footer__menu-link">Оплата</a>
+                <NuxtLink to="/payment" class="footer__menu-link">Оплата</NuxtLink>
               </li>
               <li class="footer__menu-item">
                 <a href="/" class="footer__menu-link">Доставка</a>
@@ -111,5 +108,6 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+</script>
 

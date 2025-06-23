@@ -24,7 +24,6 @@ interface ConfigurationComponent {
   image: string
   price_configuration: number
   type_configuration: number
-  specss: string // JSON-строка
   category: 'pc'
   type_product: number
   // и любые другие поля из SQL-запроса

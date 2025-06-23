@@ -12,9 +12,9 @@
         class="swiper-container"
     >
       <SwiperSlide v-for="(banner, index) in banners" :key="index" class="swiper-slide">
-        <a href="/">
+        <NuxtLink :to="banner.link">
           <img :src="banner.src" :alt="banner.alt" />
-        </a>
+        </NuxtLink>
       </SwiperSlide>
 
       <div class="swiper-pagination"></div>
@@ -35,8 +35,8 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
 const banners = [
-  { src: '/images/banner1.png', alt: 'баннер' },
-  { src: '/images/banner2.png', alt: 'баннер' },
-  { src: '/images/banner3.png', alt: 'баннер' },
+  { src: '/images/banner1.png', alt: 'баннер 1', link: '/configurator' },
+  { src: '/images/banner2.png', alt: 'баннер 2', link: '/catalog/pc' },
+  { src: '/images/banner3.png', alt: 'баннер 3', link: '/catalog/pc' },
 ];
 </script>
