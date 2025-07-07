@@ -1,4 +1,4 @@
-# Frontend часть мазазина комплектующих для компьютера. Nuxt, Vue, TypeScript.
+# Frontend часть проекта "Магазин комплектующих для компьютера". Nuxt, Vue, TypeScript.
 
 # Nuxt Minimal Starter
 
